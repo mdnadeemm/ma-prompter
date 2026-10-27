@@ -4,6 +4,11 @@ Control the prompter from a second phone, tablet or laptop — **no account, no 
 
 Open **https://mdnadeemm.github.io/ma-prompter/** on both devices. That's the whole setup.
 
+<p align="center">
+  <img src="docs/prompter.png" alt="The prompter screen" width="600">
+  <img src="docs/remote.png" alt="The remote on a phone" width="215">
+</p>
+
 The file also runs offline: open `index.html` directly and pair with the code instead of the QR.
 
 ---
