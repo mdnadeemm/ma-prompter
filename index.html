@@ -1103,7 +1103,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
         const d=unscramble(txt,room);if(!d||d.id===me)return;
         if(role==='display'){
           if(d.k==='c')applyCmd(d);
-          else if(d.k==='q'){ctrlSeen=Date.now();paintNet();}
+          else if(d.k==='q'){ctrlSeen=Date.now();paintNet();pushSnap(true);}
         }else if(d.k==='s'){
           lastSeen=Date.now();
           if(!scrub){st=Object.assign(st,d);paintCtrl();}
