@@ -80,6 +80,25 @@ Tap **Table** in the top bar (or press **T**) for a rehearsal sheet of the whole
 
 ---
 
+## Change the pace with a graph
+
+Every line already carries its own `show` and `pause`, and by default the prompter plays exactly those. Tap **Pace** in the top bar (or press **P**) and you can ride a curve instead — the words appear and disappear faster or slower as the film goes on, and the lines still keep their order, sections and faces.
+
+The panel lists ready-made curves, each with its own little graph: **Build** (starts easy, ends urgent), **Open** (fast start, slow landing), **Wave** (breathe: fast–slow–fast), **Steps** (three gears, no easing), **Climb** (long slow rise, snap at the end) and **Chill** (slow middle, quick edges). Tap one and it plays immediately — the header shows the new total, e.g. *1:33 → 1:27*.
+
+Underneath is the graph itself: nine dots on a speed axis from **0.5×** (half speed) to **2×** (double). Drag a dot up to speed that part of the film up, down to stretch it out; the whole line of dots bends into a smooth curve and the timing updates while you drag. The white playhead walks along the curve as the prompter plays, so you can see which part of the pace you are in.
+
+- **Flatten** turns the current curve into a straight 1× line; **Reset** goes back to the script's own timings (**Script**).
+- The curve applies to Reel, Lesson and your own script alike, and the choice is saved on this device.
+- The script is never rewritten — the rehearsal table always shows the real, paced `show + pause` values.
+- Turning the curve off restores the written timings exactly.
+
+<p align="center">
+  <img src="docs/pace.png" alt="Pace graph: preset curves, a custom curve and the speed axis" width="300">
+</p>
+
+---
+
 ## How it works
 
 Both pages connect to a **public MQTT broker over WebSocket** (EMQX, with HiveMQ as a fallback):

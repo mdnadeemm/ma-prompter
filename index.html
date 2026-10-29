@@ -112,6 +112,52 @@
     .shead span:nth-child(4){grid-area:p;text-align:right}
     .srow .sp{display:block;grid-area:p;text-align:right;font:600 .74rem/1.7 ui-monospace,Menlo,Consolas,monospace;color:#6d6d6d;padding-top:2px}
   }
+  /* ---------- pace graph ---------- */
+  #pacep{position:fixed;top:0;bottom:0;right:0;width:min(540px,100vw);background:#070707;border-left:1px solid #222;
+    transform:translateX(100%);transition:transform .35s ease;z-index:21;display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 16px);
+    box-sizing:border-box;font-family:system-ui,sans-serif;cursor:default;overflow-y:auto;overscroll-behavior:contain}
+  #pacep.open{transform:none}
+  .pmeta{display:flex;gap:10px;align-items:baseline;color:#6f6f6f;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin:0 2px 11px;flex-wrap:wrap}
+  .pmeta b{color:#e9b949;font-weight:600;letter-spacing:.14em}
+  .pmeta .pinfo{margin-left:auto;letter-spacing:.04em;text-transform:none;font-size:.72rem;color:#4d4d4d}
+  #pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px}
+  .pcard{background:#0d0d0d;border:1px solid #242424;border-radius:8px;padding:8px 9px 7px;cursor:pointer;
+    text-align:left;color:#bbb;font:inherit;display:block;transition:border-color .15s,background .15s}
+  .pcard:hover{border-color:#3d3d3d}
+  .pcard:focus-visible{outline:2px solid #e9b949;outline-offset:1px}
+  .pcard.on{border-color:#e9b949;background:#12100a}
+  .pcard svg{display:block;width:100%;height:36px;margin-bottom:6px;overflow:visible}
+  .pcard b{display:block;font-size:.82rem;font-weight:600;color:#dedede;letter-spacing:.04em}
+  .pcard.on b{color:#e9b949}
+  .pcard i{display:block;font-style:normal;font-size:.67rem;color:#6a6a6a;margin-top:2px;line-height:1.35}
+  .pged{border-top:1px solid #1d1d1d;padding-top:12px}
+  .pghead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.64rem;letter-spacing:.15em;
+    text-transform:uppercase;color:#5c5c5c;margin-bottom:7px}
+  .pghead b{color:#bbb;font-weight:600;letter-spacing:.05em;text-transform:none;font-size:.76rem;text-align:right}
+  #pgsvg{display:block;width:100%;height:158px;touch-action:none;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a}
+  #pgsvg .gl{stroke:#191919;stroke-width:1}
+  #pgsvg .mid{stroke:#2b2b2b;stroke-width:1;stroke-dasharray:3 5}
+  #pgsvg .area{fill:rgba(233,185,73,.08);stroke:none}
+  #pgsvg .cur{fill:none;stroke:#e9b949;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  #pgsvg .hd{fill:#0a0a0a;stroke:#e9b949;stroke-width:2;cursor:ns-resize}
+  #pgsvg .hd.live{fill:#e9b949}
+  #pgsvg .ph{stroke:#fff;stroke-width:1;opacity:.45}
+  #pgsvg .phd{fill:#fff;opacity:.85}
+  .pgfoot{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .pgfoot button{background:#161616;border:1px solid #2a2a2a;color:#ccc;font:inherit;font-size:.82rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+  .pgfoot button:hover{border-color:#3d3d3d}
+  .pgnote{color:#555;font-size:.72rem;line-height:1.5;margin-top:9px}
+  @media (min-width:600px){#pgrid{grid-template-columns:repeat(4,1fr)}}
+  @media (max-height:520px){
+    .pcard svg{height:24px}
+    .pcard i{display:none}
+    .pcard{padding:6px 8px}
+    #pgrid{gap:6px;margin-bottom:9px}
+    #pgsvg{height:118px}
+    .pgnote{display:none}
+    .pged{padding-top:9px}
+  }
   .skn{color:#999;font-size:.9rem;margin-bottom:10px;line-height:1.4}
   #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:0;transition:opacity .4s;pointer-events:none;background:#000}
   #t{position:relative;z-index:1}
@@ -221,7 +267,7 @@
 <div id="frame">
   <video id="cam" autoplay playsinline muted></video>
   <div id="toast"></div>
-  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sh">Table</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
+  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sh">Table</button><button id="pg">Pace</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
   <div id="dir"></div>
   <div id="t" class="dim">tap to begin</div>
   <div id="hold"><i></i><span></span></div>
@@ -249,6 +295,17 @@
   <div class="smeta"><b id="sname">Reel</b><span id="scount"></span><span id="stotal"></span><span class="shint">tap a line to jump to it</span></div>
   <div class="shead" aria-hidden="true"><span>time</span><span>line</span><span>face / delivery</span><span>show + pause</span></div>
   <div id="sheet" role="list"></div>
+</div>
+<div id="pacep" aria-hidden="true">
+  <div class="ph2"><span>Pace graph</span><button id="pgclose" aria-label="Close">✕</button></div>
+  <div class="pmeta"><b id="pgnow">Script</b><span id="pgtime"></span><span class="pinfo" id="pgread"></span></div>
+  <div id="pgrid"></div>
+  <div class="pged">
+    <div class="pghead"><span>speed &nbsp;·&nbsp; up = faster</span><b id="pgval"></b></div>
+    <svg id="pgsvg" role="img" aria-label="Pace curve: drag a dot up to speed that part up, down to slow it"></svg>
+    <div class="pgfoot"><button id="pgflat">Flatten</button><button id="pgreset">Reset</button><button id="pgclose2">Done</button></div>
+    <div class="pgnote">Drag a dot to bend the curve. <b>Script</b> plays the times written in the script; any curve keeps the same order and sections, only the speed of each line changes.</div>
+  </div>
 </div>
 <script type="text/plain" id="skilldata">---
 name: ma-script-writer
@@ -442,7 +499,7 @@ function build(arr){
 const SEC_REEL=[[0,'Hook','slow · low voice'],[3,'Turn','lighter · normal pace'],[6,'Idea','clear · teaching voice'],[8,'Build','fast · each line quicker'],[14,'Scale','slow · serious'],[16,'Know','one idea per breath'],[19,'Land','quietest · lower, don’t raise'],[21,'CTA','warm · one person']];
 const SEC_LESSON=[[0,'Ma','let the silence speak','😐 still face · let the room settle'],[5,'Rule 1','start in the middle','😮 lean in · eyes wide'],[9,'Rule 2','withhold','🤔 head tilt · hold the answer'],[13,'Rule 3','quiet before the line','😶 quiet face · slow blink'],[16,'Rule 4','accelerate','⚡ sharp · faster eyes'],[26,'Rule 5','quiet emotion','😌 soft · lower the voice'],[30,'Close','never fill the silence','🙂 warm · release']];
 function tag(tr,secs){
-  tr.secs=secs.map(([i,n,d,ex])=>({n,d,ex:ex||'',st:tr.cues[i].st}));
+  tr.secs=secs.map(([i,n,d,ex])=>({i,n,d,ex:ex||'',st:tr.cues[i].st}));
   tr.cues.forEach((c,i)=>{
     let k=0;secs.forEach(([si],j)=>{if(si<=i)k=j;});
     c.sec=k;c.tempo=1000/(c.s+c.b);
@@ -562,6 +619,7 @@ function render(){
   const ph=$('ph');if(ph)ph.style.left=(pos/total*100)+'%';
   const ci=idxAt(pos);
   if(sheetEl.classList.contains('open'))sheetRow(ci);
+  if($('pacep').classList.contains('open'))paceMark(pos/total);
   if(ci!==mapOn){if(mapOn>=0){const o=$('b'+mapOn);if(o)o.classList.remove('on');}const nb=$('b'+ci);if(nb)nb.classList.add('on');mapOn=ci;}
   const sec=(ci>=0&&!fresh)?track.secs[track.cues[ci].sec]:null;
   const dk=sec?'<b>'+sec.n+'</b>'+sec.d:'';
@@ -657,7 +715,8 @@ function seekTo(ms){
   pos=Math.max(0,Math.min(track.total,ms));fresh=false;lastIdx=idxAt(pos);wake();
 }
 function setMode(m){
-  mode=m;track=TRACKS[m];pos=0;playing=false;fresh=true;lastIdx=-1;shownKey='';
+  mode=m;track=TRACKS[m];if(typeof applyPace==='function')applyPace(track);
+  pos=0;playing=false;fresh=true;lastIdx=-1;shownKey='';
   document.querySelectorAll('#modes button[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===m));buildMap();dirKey='';
   if(sheetEl.classList.contains('open'))buildSheet();
 }
@@ -693,6 +752,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='g'||e.key==='G')$('gd').click();
   else if(e.key==='w'||e.key==='W')setWide(!document.body.classList.contains('wide'));
   else if(e.key==='t'||e.key==='T'){if(sheetEl.classList.contains('open'))closeSheet();else openSheet();}
+  else if(e.key==='p'||e.key==='P'){if($('pacep').classList.contains('open'))closePace();else openPace();}
 });
 // ---------- Script panel: parse pasted "Ma Script" and play it ----------
 const AI_PROMPT=`Write a talking-head reel script in the "Ma Script" format so my app can play it with timed text, pauses, speed and facial-expression cues. Output ONLY the script, in one code block.
@@ -763,7 +823,7 @@ function loadCustom(src,activate){
   if(activate)setMode('custom');
   return true;
 }
-function openPanel(){playing=false;closeSkill();closeSheet();$('panel').classList.add('open');}
+function openPanel(){playing=false;closeSkill();closeSheet();closePace();$('panel').classList.add('open');}
 function closePanel(){$('panel').classList.remove('open');}
 $('pclose').onclick=closePanel;
 $('pex').onclick=()=>{$('src').value=EXAMPLE;stat('Example loaded. Press Play this script.');};
@@ -781,7 +841,7 @@ try{const sv=localStorage.getItem('maScript');if(sv){$('src').value=sv;loadCusto
 // ---------- Skill panel: view, copy, download ----------
 const SKILL=document.getElementById('skilldata').textContent;
 function sstat(m,bad){const s=$('sstat');s.textContent=m;s.style.color=bad?'#e88':'#999';}
-function openSkill(){playing=false;closePanel();closeSheet();$('skilltxt2').value=SKILL;sstat('');$('skillp').classList.add('open');}
+function openSkill(){playing=false;closePanel();closeSheet();closePace();$('skilltxt2').value=SKILL;sstat('');$('skillp').classList.add('open');}
 function closeSkill(){$('skillp').classList.remove('open');}
 $('sclose').onclick=closeSkill;
 
@@ -826,7 +886,7 @@ function sheetRow(ci){
   sheetOn=ci;
 }
 function openSheet(){
-  playing=false;closePanel();closeSkill();
+  playing=false;closePanel();closeSkill();closePace();
   buildSheet();
   sheetEl.classList.add('open');sheetEl.setAttribute('aria-hidden','false');
   const n=$('sr'+idxAt(pos));
@@ -849,6 +909,201 @@ $('sdl').onclick=async()=>{
   try{await d.save({filename:'SKILL.md',data:SKILL});sstat('Saved SKILL.md');}
   catch(err){sstat(err&&err.code==='declined'?'Download cancelled.':'Download failed. Use Copy skill instead.',true);}
 };
+
+// ---------- Pace graph: ride a curve instead of the script's own times ----------
+const PACE_MIN=.5,PACE_MAX=2,PACE_K=9;
+const PACE={
+  script:{n:'Script',d:'the times in the script',pts:null},
+  build:{n:'Build',d:'starts easy, ends urgent',pts:[.7,.75,.82,.9,1,1.12,1.28,1.5,1.8]},
+  open:{n:'Open',d:'fast start, slow landing',pts:[1.7,1.55,1.35,1.15,1,.88,.78,.7,.62]},
+  wave:{n:'Wave',d:'breathe: fast, slow, fast',pts:[1.35,.8,1.3,.72,1.25,.78,1.3,.85,1.2]},
+  step:{n:'Steps',d:'three gears, no easing',pts:[.75,.75,.75,.75,1,1,1,1.35,1.35]},
+  climb:{n:'Climb',d:'long slow rise, snap at the end',pts:[.75,.8,.86,.92,1,1.12,1.28,1.5,1.95]},
+  chill:{n:'Chill',d:'slow middle, quick edges',pts:[1.5,1.15,.85,.65,.62,.65,.85,1.15,1.5]},
+  custom:{n:'Custom',d:'your own curve — drag the dots',pts:[1,1,1,1,1,1,1,1,1]}
+};
+const PACE_ORDER=['script','build','open','wave','step','climb','chill','custom'];
+let pace={p:'script',pts:PACE.custom.pts.slice()};
+let paceDrag=-1;
+
+const clampPace=v=>Math.max(PACE_MIN,Math.min(PACE_MAX,v));
+const PL=34,PR=14,PT=14,PB=12;              // plot insets, room for the ×-labels
+const lgPace=v=>Math.log(clampPace(v)/PACE_MIN)/Math.log(PACE_MAX/PACE_MIN);
+// Catmull-Rom through the dots: the drawn curve and the played curve are the same function.
+function curveAt(pts,u){
+  u=Math.max(0,Math.min(1,u));
+  const n=pts.length-1,x=u*n,i=Math.min(n-1,Math.floor(x)),f=x-i;
+  const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(n,i+2)];
+  return .5*((2*p1)+(-p0+p2)*f+(2*p0-5*p1+4*p2-p3)*f*f+(-p0+3*p1-3*p2+p3)*f*f*f);
+}
+function editorPts(){
+  if(pace.p==='script')return [1,1,1,1,1,1,1,1,1];
+  return pace.p==='custom'?pace.pts:PACE[pace.p].pts;
+}
+function pacePts(){
+  if(pace.p==='script')return null;
+  return pace.p==='custom'?pace.pts:PACE[pace.p].pts;
+}
+/* Rescale every cue's show and pause to the curve, sampled at the cue's own
+   position in the original script (so the middle of the film is always the
+   middle of the curve, however the curve stretches the clock). */
+function applyPace(tr){
+  if(!tr||!tr.cues)return tr;
+  if(!tr.base)tr.base=tr.cues.map(c=>({s:c.s,b:c.b}));
+  const bs=[];let bt=1000;
+  tr.base.forEach(b=>{bs.push(bt);bt+=b.s+b.b;});
+  const pts=pacePts();
+  let t=1000;
+  tr.cues.forEach((c,i)=>{
+    const b=tr.base[i]||{s:c.s,b:c.b},m=pts?clampPace(curveAt(pts,(bs[i]+(b.s+b.b)/2)/(bt||1))):1;
+    c.s=Math.max(140,b.s/m);c.b=Math.max(0,b.b/m);c.st=t;t+=c.s+c.b;
+    c.tempo=1000/(c.s+c.b);
+  });
+  tr.total=t;
+  (tr.secs||[]).forEach(s=>{const c=tr.cues[s.i];if(c)s.st=c.st;});
+  return tr;
+}
+function baseTotal(tr){return tr.base?tr.base.reduce((a,c)=>a+c.s+c.b,1000):tr.total;}
+function setPace(p,pts,quiet){
+  if(p)pace.p=p;
+  if(pts)pace.pts=pts.slice();
+  const ci=idxAt(pos),c0=ci>=0?track.cues[ci]:null;
+  const frac=(c0&&!fresh&&c0.s+c0.b>0)?Math.max(0,(pos-c0.st)/(c0.s+c0.b)):null;
+  applyPace(track);
+  if(frac!==null&&track.cues[ci]){const c=track.cues[ci];pos=Math.min(track.total,c.st+frac*(c.s+c.b));}
+  else pos=Math.min(pos,track.total);
+  lastIdx=idxAt(pos);
+  if(!quiet){
+    buildMap();dirKey='';
+    if(sheetEl.classList.contains('open'))buildSheet();
+    savePace();buildPaceGrid();
+    if($('pacep').classList.contains('open'))renderPaceEditor();
+  }
+  paintPace();render();
+}
+const LS_PACE='maPace';
+function savePace(){try{localStorage.setItem(LS_PACE,JSON.stringify({p:pace.p,pts:pace.pts}))}catch(e){}}
+function loadPace(){
+  try{
+    const v=JSON.parse(localStorage.getItem(LS_PACE)||'null');
+    if(v&&PACE[v.p]){
+      pace.p=v.p;
+      if(Array.isArray(v.pts)&&v.pts.length===PACE_K)pace.pts=v.pts.map(x=>clampPace(+x||1));
+    }
+  }catch(e){}
+}
+function paceRead(){
+  const base=baseTotal(track);
+  if(pace.p==='script')return 'the script’s own timing';
+  return fmt(base)+' → '+fmt(track.total);
+}
+function paintPace(){
+  const n=$('pgnow');if(!n)return;
+  n.textContent=(PACE[pace.p]||PACE.script).n;
+  $('pgtime').textContent=track.cues.length+' lines · '+fmt(track.total);
+  $('pgread').textContent=paceRead();
+  const pts=pacePts();
+  $('pgval').textContent=pts?Math.min(...pts).toFixed(2)+'× – '+Math.max(...pts).toFixed(2)+'×':'script times';
+  document.querySelectorAll('#pgrid .pcard').forEach(c=>c.classList.toggle('on',c.dataset.p===pace.p));
+}
+function miniCurve(pts,w,h){
+  const pad=3;let d='';
+  for(let i=0;i<=40;i++){
+    const u=i/40,v=pts?curveAt(pts,u):1;
+    d+=(i?'L':'M')+(pad+(w-pad*2)*u).toFixed(1)+' '+(pad+(1-lgPace(v))*(h-pad*2)).toFixed(1);
+  }
+  return d;
+}
+function buildPaceGrid(){
+  const box=$('pgrid');if(!box)return;
+  box.innerHTML='';
+  PACE_ORDER.forEach(k=>{
+    const o=PACE[k],pts=k==='script'?null:(k==='custom'?pace.pts:PACE[k].pts),on=k===pace.p;
+    const b=document.createElement('button');
+    b.type='button';b.className='pcard'+(on?' on':'');b.dataset.p=k;
+    b.innerHTML='<svg viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">'
+      +'<path d="'+miniCurve(pts,100,36)+'" fill="none" stroke="'+(on?'#e9b949':'#787878')+'" stroke-width="1.7" vector-effect="non-scaling-stroke"/></svg>'
+      +'<b>'+o.n+'</b><i>'+o.d+'</i>';
+    b.onclick=()=>setPace(k,k==='custom'?pace.pts:undefined);
+    box.appendChild(b);
+  });
+}
+function renderPaceEditor(){
+  const svg=$('pgsvg');if(!svg)return;
+  const w=Math.max(160,Math.round(svg.clientWidth||320)),h=Math.max(90,Math.round(svg.clientHeight||158));
+  svg.setAttribute('viewBox','0 0 '+w+' '+h);
+  const pts=editorPts(),x0=PL,x1=w-PR,y0=PT,y1=h-PB;
+  const X=i=>x0+(x1-x0)*i/(pts.length-1);
+  const Y=v=>y0+(1-lgPace(v))*(y1-y0);
+  let d='';
+  for(let i=0;i<=56;i++){
+    const u=i/56;
+    d+=(i?'L':'M')+(x0+(x1-x0)*u).toFixed(1)+' '+Y(curveAt(pts,u)).toFixed(1);
+  }
+  let g='';
+  [[PACE_MAX,'2×'],[1.5,'1.5×'],[1,'1×'],[.75,'0.75×'],[PACE_MIN,'0.5×']].forEach(([v,lab])=>{
+    const yy=Y(v).toFixed(1);
+    g+='<line class="'+(v===1?'mid':'gl')+'" x1="'+x0+'" y1="'+yy+'" x2="'+x1+'" y2="'+yy+'"/>'
+      +'<text x="'+(x0-6)+'" y="'+(+yy+3.5).toFixed(1)+'" fill="#4a4a4a" font-size="9" text-anchor="end" font-family="system-ui,sans-serif">'+lab+'</text>';
+  });
+  let hs='';
+  pts.forEach((v,i)=>{hs+='<circle class="hd" data-i="'+i+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="6"/>';});
+  svg.innerHTML=g+'<path class="area" d="'+d+'L'+x1+' '+y1+'L'+x0+' '+y1+'Z"/>'
+    +'<path class="cur" d="'+d+'"/>'+hs
+    +'<line class="ph" id="pgph" x1="0" y1="'+y0+'" x2="0" y2="'+y1+'"/>'
+    +'<circle class="phd" id="pgphd" r="3.5" cx="0" cy="0"/>';
+  paceMark(pos/track.total);
+}
+function paceMark(u){
+  const l=$('pgph');if(!l)return;
+  const svg=$('pgsvg'),vb=svg&&svg.viewBox.baseVal;
+  if(!vb||!vb.width)return;
+  u=Math.max(0,Math.min(1,u));
+  const x=PL+(vb.width-PL-PR)*u,y1=vb.height-PB;
+  l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',PT);l.setAttribute('y2',y1);
+  const d=$('pgphd');
+  if(d)d.setAttribute('cy',PT+(1-lgPace(curveAt(editorPts(),u)))*(y1-PT));
+}
+function toCustom(){
+  if(pace.p==='custom')return;
+  pace.pts=(pace.p==='script'?[1,1,1,1,1,1,1,1,1]:PACE[pace.p].pts).slice();
+  pace.p='custom';
+}
+function paceDragTo(e){
+  const svg=$('pgsvg'),r=svg.getBoundingClientRect();
+  const t=1-(e.clientY-r.top-PT)/(r.height-PT-PB);
+  const v=clampPace(Math.round(PACE_MIN*Math.pow(PACE_MAX/PACE_MIN,t)*20)/20);
+  pace.pts[paceDrag]=v;
+  setPace('custom',null,true);
+  renderPaceEditor();
+  const hd=svg.querySelector('.hd[data-i="'+paceDrag+'"]');if(hd)hd.classList.add('live');
+}
+function openPace(){
+  playing=false;closePanel();closeSkill();closeSheet();
+  buildPaceGrid();paintPace();
+  $('pacep').classList.add('open');$('pacep').setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>renderPaceEditor());
+}
+function closePace(){$('pacep').classList.remove('open');$('pacep').setAttribute('aria-hidden','true');}
+$('pg').onclick=openPace;
+$('pgclose').onclick=closePace;
+$('pgclose2').onclick=closePace;
+$('pgflat').onclick=()=>{pace.p='custom';pace.pts=[1,1,1,1,1,1,1,1,1];setPace('custom');renderPaceEditor();};
+$('pgreset').onclick=()=>{setPace('script');renderPaceEditor();};
+$('pgsvg').addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  const svg=$('pgsvg'),r=svg.getBoundingClientRect(),pts=editorPts();
+  let best=0,bd=1e9;
+  pts.forEach((v,i)=>{const x=r.left+12+(r.width-24)*i/(pts.length-1),d=Math.abs(x-e.clientX);if(d<bd){bd=d;best=i;}});
+  toCustom();paceDrag=best;
+  try{svg.setPointerCapture(e.pointerId);}catch(_){}
+  paceDragTo(e);
+});
+$('pgsvg').addEventListener('pointermove',e=>{if(paceDrag<0)return;e.preventDefault();paceDragTo(e);});
+['pointerup','pointercancel'].forEach(ev=>$('pgsvg').addEventListener(ev,()=>{
+  if(paceDrag<0)return;paceDrag=-1;setPace('custom');renderPaceEditor();
+}));
+addEventListener('resize',()=>{if($('pacep').classList.contains('open'))renderPaceEditor();});
 
 // ---------- Mirror: front camera behind the text ----------
 let camStream=null,mirrorLvl=0;
@@ -874,6 +1129,8 @@ async function setMirror(l){
   frame.classList.add('mirror');b.classList.add('on');b.textContent=l===1?'Camera ◐':'Camera ●';
 }
 
+loadPace();
+applyPace(TRACKS.reel);applyPace(TRACKS.lesson);if(TRACKS.custom)applyPace(TRACKS.custom);
 buildMap();
 requestAnimationFrame(t=>{last=t;frameTick(t);});
 </script>
