@@ -94,6 +94,17 @@
   .flip #hold{transform:translate(-50%,-50%) scaleX(-1)}
   .flip #lp{transform:translateX(-50%) scaleX(-1)}
   .hide{opacity:0;pointer-events:none}
+  /* ---------- landscape / distance mode ---------- */
+  body.wide #frame{width:100vw;box-shadow:none}
+  body.wide #t{font-size:var(--fit,2.2rem);line-height:1.18;letter-spacing:0;padding:0 3vw;
+    box-sizing:border-box;max-width:100%}
+  body.wide #t.big{font-size:min(44vh,44vw)}
+  body.wide #t.dim{font-size:clamp(1rem,3.4vh,2.2rem);letter-spacing:.2em}
+  body.wide #face,body.wide #spd,body.wide #lp,body.wide #nxt,body.wide #map,body.wide #hold,body.wide #dir{display:none}
+  body.wide #ctl{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+  body.wide #modes{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
+  body.wide #modes button{font-size:.68rem;letter-spacing:.04em;padding:7px 5px}
+  body.wide .w:not(.said){opacity:.55}
   #seek{-webkit-appearance:none;appearance:none;flex:1;height:24px;background:transparent;margin:0;cursor:pointer;--p:0%}
   #seek::-webkit-slider-runnable-track{height:2px;background:linear-gradient(to right,#fff var(--p),#333 var(--p))}
   #seek::-moz-range-track{height:2px;background:linear-gradient(to right,#fff var(--p),#333 var(--p))}
@@ -147,6 +158,8 @@
     font:inherit;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
   .cmodes button.on{color:#fff;border-color:#3a3a3a;background:#171717}
   .ctogs button.on{color:#9e9;border-color:#2e3a2e}
+  .ctogs{flex-wrap:wrap}
+  .ctogs button{flex:1 1 28%}
   #join{position:absolute;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;
     padding:calc(env(safe-area-inset-top,0px) + 20px) 28px calc(env(safe-area-inset-bottom,0px) + 20px);text-align:center}
   #join.show{display:flex}
@@ -166,7 +179,7 @@
 <div id="frame">
   <video id="cam" autoplay playsinline muted></video>
   <div id="toast"></div>
-  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button></div>
+  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
   <div id="dir"></div>
   <div id="t" class="dim">tap to begin</div>
   <div id="hold"><i></i><span></span></div>
@@ -306,7 +319,7 @@ The user copies the script block, opens the Ma Pacing app, taps **Script**, past
     <button data-act="stop" aria-label="Stop and rewind">■</button>
   </div>
   <div class="cmodes"><button data-mode="reel">Reel</button><button data-mode="lesson">Lesson</button><button data-mode="custom">Mine</button></div>
-  <div class="ctogs"><button data-tog="mute">Sound</button><button data-tog="cam">Camera</button><button data-tog="flip">Flip</button><button data-tog="guides">Guides</button></div>
+  <div class="ctogs"><button data-tog="mute">Sound</button><button data-tog="cam">Camera</button><button data-tog="flip">Flip</button><button data-tog="guides">Guides</button><button data-tog="wide">Landscape</button></div>
   <div id="join">
     <div class="jt">Connect to a display</div>
     <input id="jroom" maxlength="5" spellcheck="false" autocomplete="off" placeholder="CODE">
@@ -436,7 +449,7 @@ function setText(txt,cls){
   const key=cls+'|'+txt;
   if(key===shownKey)return;
   shownKey=key;el.className=cls;words=[];thr=[];
-  if(cls!==''||txt.length<3){el.textContent=txt;return;}
+  if(cls!==''||txt.length<3){el.textContent=txt;fitText();return;}
   el.innerHTML='';
   const parts=txt.split(' '),tot=txt.replace(/ /g,'').length;let acc=0;
   parts.forEach((w,i)=>{
@@ -444,6 +457,48 @@ function setText(txt,cls){
     el.appendChild(s);if(i<parts.length-1)el.appendChild(document.createTextNode(' '));
     words.push(s);thr.push(acc/tot);acc+=w.length;
   });
+  fitText();
+}
+
+/* Landscape mode: full-bleed stage and the largest type that still fits the free band
+   in at most three lines, so the same line can be read from across a room. */
+let mc=null;
+function widestWord(txt,px,fam){
+  mc=mc||document.createElement('canvas').getContext('2d');
+  mc.font=px+'px '+fam;
+  let w=0;
+  for(const s of txt.split(/\s+/))w=Math.max(w,mc.measureText(s).width);
+  return w;
+}
+function fitText(){
+  if(!document.body.classList.contains('wide')||el.className){
+    el.style.removeProperty('--fit');return;
+  }
+  const r=frame.getBoundingClientRect(),txt=el.textContent;
+  if(r.width<40||r.height<40||!txt)return;
+  const cs=getComputedStyle(el);
+  const cw=el.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  const pad=Math.max(16,Math.min(38,r.height*.055));
+  const avail=Math.max(44,r.height-ctl.getBoundingClientRect().height-pad*2);
+  let lo=10,hi=Math.min(avail,Math.min(r.width,r.height)*.62);
+  el.style.setProperty('--fit',hi+'px');
+  for(let i=0;i<8;i++){
+    const mid=(lo+hi)/2;
+    el.style.setProperty('--fit',mid+'px');
+    const h=el.getBoundingClientRect().height;
+    const ok=h<=avail+1&&h/(mid*1.18)<=3.05&&widestWord(txt,mid,cs.fontFamily)<=cw;
+    if(ok)lo=mid;else hi=mid;
+  }
+  el.style.setProperty('--fit',Math.max(10,Math.floor(lo))+'px');
+}
+
+function setWide(on){
+  on=!!on;
+  document.body.classList.toggle('wide',on);
+  const b=$('wd');if(b)b.classList.toggle('on',on);
+  try{localStorage.setItem('maWide',on?'1':'0')}catch(e){}
+  el.style.removeProperty('--fit');
+  fitText();
 }
 
 function render(){
@@ -550,13 +605,17 @@ frame.addEventListener('click',toggle);
 ctl.addEventListener('click',e=>e.stopPropagation());
 modes.addEventListener('click',e=>{
   e.stopPropagation();const b=e.target.closest('button');if(!b)return;
-  if(b.id==='gd'){frame.classList.toggle('noguide');b.classList.toggle('on');return;}
+  if(b.id==='gd'){frame.classList.toggle('noguide');b.classList.toggle('on');fitText();return;}
   if(b.id==='sc'){openPanel();return;}
   if(b.id==='sk'){openSkill();return;}
   if(b.id==='mr'){setMirror((mirrorLvl+1)%3);return;}
   if(b.id==='fl'){frame.classList.toggle('flip');b.classList.toggle('on');return;}
+  if(b.id==='wd'){setWide(!document.body.classList.contains('wide'));return;}
   if(b.dataset.m)setMode(b.dataset.m);
 });
+try{if(localStorage.getItem('maWide')==='1')setWide(true)}catch(e){}
+let fitT=0;
+addEventListener('resize',()=>{clearTimeout(fitT);fitT=setTimeout(fitText,90);});
 mapEl.addEventListener('click',e=>{const r=mapEl.getBoundingClientRect();seekTo((e.clientX-r.left)/r.width*track.total);});
 pp.addEventListener('click',toggle);
 seek.addEventListener('input',()=>seekTo(seek.value/1000*track.total));
@@ -569,6 +628,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='m'||e.key==='M')$('mu').click();
   else if(e.key==='r'||e.key==='R'){seekTo(0);}
   else if(e.key==='g'||e.key==='G')$('gd').click();
+  else if(e.key==='w'||e.key==='W')setWide(!document.body.classList.contains('wide'));
 });
 // ---------- Script panel: parse pasted "Ma Script" and play it ----------
 const AI_PROMPT=`Write a talking-head reel script in the "Ma Script" format so my app can play it with timed text, pauses, speed and facial-expression cues. Output ONLY the script, in one code block.
@@ -1029,7 +1089,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     const inLine=!!(c&&!fresh&&(pos-c.st)<c.s);
     return {k:'s',playing,pos:Math.round(pos),total:track.total,mode,
       muted,cam:mirrorLvl,flip:frame.classList.contains('flip'),
-      guides:!frame.classList.contains('noguide'),custom:!!TRACKS.custom,
+      guides:!frame.classList.contains('noguide'),wide:document.body.classList.contains('wide'),custom:!!TRACKS.custom,
       line:inLine?c.x:'',next:(track.cues[i+1]||{}).x||'',fresh};
   }
   function pushSnap(force){
@@ -1049,18 +1109,28 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     mute(d){ muted=!!d.v; $('mu').style.opacity=muted?.35:1; },
     cam(d){ setMirror(+d.l|0); },
     flip(d){ frame.classList.toggle('flip',!!d.v); $('fl').classList.toggle('on',!!d.v); },
-    guides(d){ frame.classList.toggle('noguide',!d.v); $('gd').classList.toggle('on',!!d.v); }
+    guides(d){ frame.classList.toggle('noguide',!d.v); $('gd').classList.toggle('on',!!d.v); fitText(); },
+    wide(d){ setWide(!!d.v); }
   };
+  /* A public broker on a busy network sometimes loses a QoS-0 packet. Every
+     command carries a sequence number and is sent three times; the screen
+     ignores a repeat, so a lost publish costs nothing and a duplicate is safe. */
+  const seenCmd={};
   function applyCmd(d){
     if(role!=='display')return;
+    if(d.seq){
+      const k=(d.id||'')+'|'+d.t, prev=seenCmd[k];
+      if(prev!==undefined&&d.seq<=prev)return;
+      seenCmd[k]=d.seq;
+    }
     const f=CMD[d.t];if(!f)return;
     try{f(d)}catch(e){}
     pushSnap(true);
   }
 
   /* ---------- controller side ---------- */
-  let st={playing:false,pos:0,total:0,mode:'reel',muted:false,cam:0,flip:false,guides:true,custom:false,line:'',next:'',fresh:true};
-  let lastSeen=0,scrub=false,scrubT=0,statusLock=0;
+  let st={playing:false,pos:0,total:0,mode:'reel',muted:false,cam:0,flip:false,guides:true,wide:false,custom:false,line:'',next:'',fresh:true};
+  let lastSeen=0,scrub=false,scrubT=0,statusLock=0,cmdSeq=0;
   function tog(k,on){const b=document.querySelector('.ctogs button[data-tog="'+k+'"]');if(b)b.classList.toggle('on',!!on);}
   function paintCtrl(){
     if(role!=='control')return;
@@ -1076,7 +1146,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
       b.classList.toggle('on',b.dataset.mode===st.mode);
       if(b.dataset.mode==='custom')b.style.display=st.custom?'':'none';
     });
-    tog('mute',!st.muted);tog('cam',st.cam>0);tog('flip',st.flip);tog('guides',st.guides);
+    tog('mute',!st.muted);tog('cam',st.cam>0);tog('flip',st.flip);tog('guides',st.guides);tog('wide',st.wide);
     paintNet();
   }
   function paintNet(){
@@ -1096,7 +1166,12 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
   }
   function ctrlSend(t,extra){
     if(!relay)return;
-    relay.pub(scramble(Object.assign({k:'c',t,id:me},extra||{}),room));
+    const seq=++cmdSeq;
+    const msg=scramble(Object.assign({k:'c',t,id:me,seq},extra||{}),room);
+    const fire=()=>{if(relay)relay.pub(msg);};
+    fire();
+    setTimeout(fire,600);
+    setTimeout(fire,1600);
   }
 
   /* ---------- relay lifecycle ---------- */
@@ -1194,6 +1269,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     else if(t==='cam'){st.cam=(st.cam+1)%3;ctrlSend('cam',{l:st.cam});}
     else if(t==='flip'){st.flip=!st.flip;ctrlSend('flip',{v:st.flip});}
     else if(t==='guides'){st.guides=!st.guides;ctrlSend('guides',{v:st.guides});}
+    else if(t==='wide'){st.wide=!st.wide;ctrlSend('wide',{v:st.wide});}
     paintCtrl();
   }));
   const pr=$('cprog');

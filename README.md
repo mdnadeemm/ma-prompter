@@ -44,10 +44,25 @@ The code is remembered, so the next time both devices reconnect on their own.
 | Camera | camera backdrop off → faint → strong |
 | Flip | mirror the text (for a beam splitter) |
 | Guides | hide/show the timing guides |
+| Landscape | full-width stage with the biggest type that fits — for reading from far away |
 
 The remote also shows the current line, the next line, the clock and the section, so you can read along.
 
 Both devices stay in sync in both directions — if you tap the screen itself, the remote updates too.
+
+---
+
+## Read it from a distance
+
+The normal stage is portrait-shaped, so on a phone propped up a few metres away the words are small. Tap **Landscape** in the top bar (or the **Landscape** chip on the remote) and the stage goes edge to edge and the type grows to the largest size that still fits the line — up to three lines, never breaking a word.
+
+In this mode only the words remain: the face prompt, the speed readout, the progress line and the word map step aside, and unspoken words stay dim-but-readable instead of nearly invisible. The mode bar and the controls fade out as usual and come back on a tap, so a glance from across the room shows nothing but text.
+
+The choice is saved per device, so a phone that lives on a tripod comes back in landscape, and **W** toggles it from a keyboard.
+
+<p align="center">
+  <img src="docs/landscape.png" alt="Landscape mode: full-width stage with very large type" width="620">
+</p>
 
 ---
 
