@@ -40,8 +40,9 @@
   #map .ph{position:absolute;bottom:8px;top:0;width:1px;background:#fff;opacity:.6}
   .noguide #dir,.noguide #hold,.noguide #map{display:none}
   #modes #gd.on{color:#ddd}
-  .w{opacity:.3;transition:opacity .18s}
+  .w{opacity:.3;transition:opacity .18s,color .18s}
   .w.said{opacity:1}
+  .w.now{color:#e9b949}
   #face{position:absolute;top:calc(env(safe-area-inset-top,0px) + 82px);left:0;right:0;text-align:center;font-family:system-ui,sans-serif;font-size:.85rem;letter-spacing:.06em;color:#b5b5b5;padding:0 1.4rem;pointer-events:none}
   #spd{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 170px);text-align:center;font-family:system-ui,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#888;pointer-events:none}
   #lp{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 160px);width:46%;height:1px;transform:translateX(-50%);background:#222;pointer-events:none}
@@ -76,6 +77,41 @@
   #src,#skilltxt2{flex:1;min-height:0;background:#000;color:#ddd;border:1px solid #222;border-radius:6px;padding:12px;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;resize:none;outline:none;white-space:pre-wrap;overflow:auto}
   #pstat,#sstat{min-height:1.4em;margin:10px 0;color:#999;font-size:.9rem}
   .pbtn{display:flex;gap:8px;flex-wrap:wrap}
+  /* rehearsal table */
+  #sheetp{position:fixed;top:0;bottom:0;right:0;width:min(720px,100vw);background:#070707;border-left:1px solid #222;
+    transform:translateX(100%);transition:transform .35s ease;z-index:21;display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 8px);
+    box-sizing:border-box;font-family:system-ui,sans-serif;cursor:default}
+  #sheetp.open{transform:none}
+  #sheetp button{background:#161616;border:1px solid #2a2a2a;color:#ccc;font:inherit;font-size:.9rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+  .smeta{display:flex;gap:12px;align-items:baseline;color:#6f6f6f;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;margin:0 4px 10px}
+  .smeta b{color:#dedede;font-weight:600}
+  .smeta .shint{margin-left:auto;color:#4d4d4d;letter-spacing:.06em;text-transform:none;font-size:.74rem}
+  .shead,.srow{display:grid;grid-template-columns:4.2em minmax(0,1fr);grid-template-areas:"t x" "t f";column-gap:10px}
+  .shead{color:#5c5c5c;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;padding:0 6px 6px;border-bottom:1px solid #242424}
+  .shead span{white-space:nowrap}
+  .shead span:nth-child(1){grid-area:t}
+  .shead span:nth-child(2){grid-area:x}
+  .shead span:nth-child(3),.shead span:nth-child(4){display:none}
+  #sheet{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:4px}
+  .ssec{display:flex;gap:10px;align-items:baseline;padding:15px 6px 5px;border-bottom:1px solid #1b1b1b}
+  .ssec b{color:#ececec;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;font-weight:600}
+  .ssec i{font-style:normal;color:#6b6b6b;font-size:.76rem}
+  .srow{padding:8px 6px;border-bottom:1px solid #101010;cursor:pointer}
+  .srow:hover,.srow:focus-visible{background:#0f0f0f;outline:none}
+  .srow .st{grid-area:t;font:600 .78rem/1.7 ui-monospace,Menlo,Consolas,monospace;color:#5e5e5e;padding-top:2px}
+  .srow .sx{grid-area:x;font-family:Georgia,"Times New Roman",serif;font-size:1rem;line-height:1.4;color:#e2e2e2}
+  .srow .sf{grid-area:f;font-size:.76rem;line-height:1.4;color:#7d7d7d;margin-top:3px}
+  .srow .sp{display:none}
+  .srow.on{background:#0e0e0e;box-shadow:inset 2px 0 0 #e9b949}
+  .srow.on .st,.srow.on .sp{color:#e9b949}
+  @media (min-width:640px){
+    .shead,.srow{grid-template-columns:4.2em minmax(0,1fr) minmax(0,14em) 7.4em;grid-template-areas:"t x f p"}
+    .shead span:nth-child(3),.shead span:nth-child(4){display:block}
+    .shead span:nth-child(3){grid-area:f}
+    .shead span:nth-child(4){grid-area:p;text-align:right}
+    .srow .sp{display:block;grid-area:p;text-align:right;font:600 .74rem/1.7 ui-monospace,Menlo,Consolas,monospace;color:#6d6d6d;padding-top:2px}
+  }
   .skn{color:#999;font-size:.9rem;margin-bottom:10px;line-height:1.4}
   #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:0;transition:opacity .4s;pointer-events:none;background:#000}
   #t{position:relative;z-index:1}
@@ -104,8 +140,14 @@
   body.wide #ctl{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
   body.wide #modes{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
   body.wide #modes button{font-size:.68rem;letter-spacing:.04em;padding:7px 5px}
-  body.wide .w:not(.said){opacity:.55}
-  #seek{-webkit-appearance:none;appearance:none;flex:1;height:24px;background:transparent;margin:0;cursor:pointer;--p:0%}
+  @media (max-width:430px){
+    #row{gap:8px}
+    #time{font-size:.85rem;min-width:5.1em}
+    #ctl #rm{font-size:.64rem;letter-spacing:.1em}
+  }
+  body.wide .w:not(.said){opacity:.34}
+  body.wide .w.now{color:#ffcf5c;text-shadow:0 0 .32em rgba(255,207,92,.35)}
+  #seek{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:24px;background:transparent;margin:0;cursor:pointer;--p:0%}
   #seek::-webkit-slider-runnable-track{height:2px;background:linear-gradient(to right,#fff var(--p),#333 var(--p))}
   #seek::-moz-range-track{height:2px;background:linear-gradient(to right,#fff var(--p),#333 var(--p))}
   #seek::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;margin-top:-5px;border:0}
@@ -179,7 +221,7 @@
 <div id="frame">
   <video id="cam" autoplay playsinline muted></video>
   <div id="toast"></div>
-  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
+  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sh">Table</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
   <div id="dir"></div>
   <div id="t" class="dim">tap to begin</div>
   <div id="hold"><i></i><span></span></div>
@@ -201,6 +243,12 @@
   <textarea id="skilltxt2" readonly spellcheck="false"></textarea>
   <div id="sstat"></div>
   <div class="pbtn"><button id="scopy" class="main">Copy skill</button><button id="sdl">Download SKILL.md</button></div>
+</div>
+<div id="sheetp" aria-hidden="true">
+  <div class="ph2"><span>Rehearsal table</span><button id="shclose" aria-label="Close">✕</button></div>
+  <div class="smeta"><b id="sname">Reel</b><span id="scount"></span><span id="stotal"></span><span class="shint">tap a line to jump to it</span></div>
+  <div class="shead" aria-hidden="true"><span>time</span><span>line</span><span>face / delivery</span><span>show + pause</span></div>
+  <div id="sheet" role="list"></div>
 </div>
 <script type="text/plain" id="skilldata">---
 name: ma-script-writer
@@ -392,10 +440,14 @@ function build(arr){
   return {cues,total:t};
 }
 const SEC_REEL=[[0,'Hook','slow · low voice'],[3,'Turn','lighter · normal pace'],[6,'Idea','clear · teaching voice'],[8,'Build','fast · each line quicker'],[14,'Scale','slow · serious'],[16,'Know','one idea per breath'],[19,'Land','quietest · lower, don’t raise'],[21,'CTA','warm · one person']];
-const SEC_LESSON=[[0,'Ma','let the silence speak'],[5,'Rule 1','start in the middle'],[9,'Rule 2','withhold'],[13,'Rule 3','quiet before the line'],[16,'Rule 4','accelerate'],[26,'Rule 5','quiet emotion'],[30,'Close','never fill the silence']];
+const SEC_LESSON=[[0,'Ma','let the silence speak','😐 still face · let the room settle'],[5,'Rule 1','start in the middle','😮 lean in · eyes wide'],[9,'Rule 2','withhold','🤔 head tilt · hold the answer'],[13,'Rule 3','quiet before the line','😶 quiet face · slow blink'],[16,'Rule 4','accelerate','⚡ sharp · faster eyes'],[26,'Rule 5','quiet emotion','😌 soft · lower the voice'],[30,'Close','never fill the silence','🙂 warm · release']];
 function tag(tr,secs){
-  tr.secs=secs.map(([i,n,d])=>({n,d,st:tr.cues[i].st}));
-  tr.cues.forEach((c,i)=>{let k=0;secs.forEach(([si],j)=>{if(si<=i)k=j;});c.sec=k;c.tempo=1000/(c.s+c.b);});
+  tr.secs=secs.map(([i,n,d,ex])=>({n,d,ex:ex||'',st:tr.cues[i].st}));
+  tr.cues.forEach((c,i)=>{
+    let k=0;secs.forEach(([si],j)=>{if(si<=i)k=j;});
+    c.sec=k;c.tempo=1000/(c.s+c.b);
+    if(!c.ex&&tr.secs[k].ex)c.ex=tr.secs[k].ex;
+  });
 }
 const TRACKS={reel:build(REEL),lesson:build(LESSON)};
 tag(TRACKS.reel,SEC_REEL);tag(TRACKS.lesson,SEC_LESSON);
@@ -413,7 +465,7 @@ EXPR_REEL.forEach((x,i)=>{TRACKS.reel.cues[i].ex=x;});
 
 const $=id=>document.getElementById(id);
 const el=$('t'),seek=$('seek'),timeEl=$('time'),ctl=$('ctl'),modes=$('modes'),pp=$('pp'),frame=$('frame');
-const dirEl=$('dir'),holdEl=$('hold'),mapEl=$('map'),faceEl=$('face'),spdEl=$('spd'),lpEl=$('lp'),nxtEl=$('nxt');
+const dirEl=$('dir'),holdEl=$('hold'),mapEl=$('map'),faceEl=$('face'),spdEl=$('spd'),lpEl=$('lp'),nxtEl=$('nxt'),sheetEl=$('sheetp');
 let mode='reel',track=TRACKS.reel,pos=0,playing=false,last=0,fresh=true,lastIdx=-1,muted=false,ctx=null,idle=0;
 
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
@@ -509,6 +561,7 @@ function render(){
   pp.textContent=playing?'❚❚':'▶';
   const ph=$('ph');if(ph)ph.style.left=(pos/total*100)+'%';
   const ci=idxAt(pos);
+  if(sheetEl.classList.contains('open'))sheetRow(ci);
   if(ci!==mapOn){if(mapOn>=0){const o=$('b'+mapOn);if(o)o.classList.remove('on');}const nb=$('b'+ci);if(nb)nb.classList.add('on');mapOn=ci;}
   const sec=(ci>=0&&!fresh)?track.secs[track.cues[ci].sec]:null;
   const dk=sec?'<b>'+sec.n+'</b>'+sec.d:'';
@@ -558,8 +611,16 @@ function render(){
     if(into<c.s){
       const fade=Math.max(1,Math.min(600,c.s*.3));
       setText(c.x,c.x==='間'?'big':'');
-      if(words.length){const p=into/(c.s*.9);for(let k=0;k<words.length;k++)words[k].classList.toggle('said',p>=thr[k]);}
-      el.style.opacity=Math.max(0,Math.min(1,into/fade,(c.s-into)/fade));
+      if(words.length){
+        const p=into/(c.s*.9);let nowI=-1;
+        for(let k=0;k<words.length;k++){
+          const on=p>=thr[k];
+          words[k].classList.toggle('said',on);
+          if(on)nowI=k;
+        }
+        for(let k=0;k<words.length;k++)words[k].classList.toggle('now',k===nowI);
+      }
+      el.style.opacity=playing?Math.max(0,Math.min(1,into/fade,(c.s-into)/fade)):1;
       return;
     }
   }
@@ -598,6 +659,7 @@ function seekTo(ms){
 function setMode(m){
   mode=m;track=TRACKS[m];pos=0;playing=false;fresh=true;lastIdx=-1;shownKey='';
   document.querySelectorAll('#modes button[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===m));buildMap();dirKey='';
+  if(sheetEl.classList.contains('open'))buildSheet();
 }
 
 frame.addEventListener('click',toggle);
@@ -607,6 +669,7 @@ modes.addEventListener('click',e=>{
   e.stopPropagation();const b=e.target.closest('button');if(!b)return;
   if(b.id==='gd'){frame.classList.toggle('noguide');b.classList.toggle('on');fitText();return;}
   if(b.id==='sc'){openPanel();return;}
+  if(b.id==='sh'){openSheet();return;}
   if(b.id==='sk'){openSkill();return;}
   if(b.id==='mr'){setMirror((mirrorLvl+1)%3);return;}
   if(b.id==='fl'){frame.classList.toggle('flip');b.classList.toggle('on');return;}
@@ -629,6 +692,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='r'||e.key==='R'){seekTo(0);}
   else if(e.key==='g'||e.key==='G')$('gd').click();
   else if(e.key==='w'||e.key==='W')setWide(!document.body.classList.contains('wide'));
+  else if(e.key==='t'||e.key==='T'){if(sheetEl.classList.contains('open'))closeSheet();else openSheet();}
 });
 // ---------- Script panel: parse pasted "Ma Script" and play it ----------
 const AI_PROMPT=`Write a talking-head reel script in the "Ma Script" format so my app can play it with timed text, pauses, speed and facial-expression cues. Output ONLY the script, in one code block.
@@ -699,7 +763,7 @@ function loadCustom(src,activate){
   if(activate)setMode('custom');
   return true;
 }
-function openPanel(){playing=false;closeSkill();$('panel').classList.add('open');}
+function openPanel(){playing=false;closeSkill();closeSheet();$('panel').classList.add('open');}
 function closePanel(){$('panel').classList.remove('open');}
 $('pclose').onclick=closePanel;
 $('pex').onclick=()=>{$('src').value=EXAMPLE;stat('Example loaded. Press Play this script.');};
@@ -717,9 +781,63 @@ try{const sv=localStorage.getItem('maScript');if(sv){$('src').value=sv;loadCusto
 // ---------- Skill panel: view, copy, download ----------
 const SKILL=document.getElementById('skilldata').textContent;
 function sstat(m,bad){const s=$('sstat');s.textContent=m;s.style.color=bad?'#e88':'#999';}
-function openSkill(){playing=false;closePanel();$('skilltxt2').value=SKILL;sstat('');$('skillp').classList.add('open');}
+function openSkill(){playing=false;closePanel();closeSheet();$('skilltxt2').value=SKILL;sstat('');$('skillp').classList.add('open');}
 function closeSkill(){$('skillp').classList.remove('open');}
 $('sclose').onclick=closeSkill;
+
+// ---------- Rehearsal table: every line with its face, timing and section ----------
+let sheetOn=-1;
+function sheetFace(c){
+  if(c.ex)return c.ex;
+  const s=track.secs[c.sec];
+  return (s&&s.d)||'—';
+}
+function buildSheet(){
+  const box=$('sheet');
+  box.innerHTML='';sheetOn=-1;
+  $('sname').textContent=mode==='reel'?'Reel':mode==='lesson'?'Lesson':'Mine';
+  $('scount').textContent=track.cues.length+' lines';
+  $('stotal').textContent=fmt(track.total);
+  track.cues.forEach((c,i)=>{
+    if(i===0||track.cues[i-1].sec!==c.sec){
+      const s=track.secs[c.sec]||{n:'',d:''};
+      const h=document.createElement('div');h.className='ssec';
+      const b=document.createElement('b');b.textContent=s.n||'—';
+      const d=document.createElement('i');d.textContent=s.d||'';
+      h.append(b,d);box.appendChild(h);
+    }
+    const r=document.createElement('div');
+    r.className='srow';r.id='sr'+i;r.tabIndex=0;r.setAttribute('role','listitem');
+    const st=document.createElement('span');st.className='st';st.textContent=fmt(c.st);
+    const sx=document.createElement('span');sx.className='sx';sx.textContent=c.x;
+    const sf=document.createElement('span');sf.className='sf';sf.textContent=sheetFace(c);
+    const sp=document.createElement('span');sp.className='sp';sp.textContent=(c.s/1000).toFixed(1)+'s +'+(c.b/1000).toFixed(1);
+    r.append(st,sx,sf,sp);
+    r.onclick=()=>jumpTo(i);
+    r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();jumpTo(i);}};
+    box.appendChild(r);
+  });
+}
+function sheetRow(ci){
+  if(ci===sheetOn)return;
+  const o=$('sr'+sheetOn);if(o)o.classList.remove('on');
+  const n=$('sr'+ci);
+  if(n){n.classList.add('on');if(playing)n.scrollIntoView({block:'nearest'});}
+  sheetOn=ci;
+}
+function openSheet(){
+  playing=false;closePanel();closeSkill();
+  buildSheet();
+  sheetEl.classList.add('open');sheetEl.setAttribute('aria-hidden','false');
+  const n=$('sr'+idxAt(pos));
+  if(n){n.classList.add('on');sheetOn=idxAt(pos);requestAnimationFrame(()=>n.scrollIntoView({block:'center'}));}
+}
+function closeSheet(){sheetEl.classList.remove('open');sheetEl.setAttribute('aria-hidden','true');}
+function jumpTo(i){
+  const c=track.cues[i];if(!c)return;
+  playing=false;seekTo(c.st);closeSheet();wake();
+}
+$('shclose').onclick=closeSheet;
 $('scopy').onclick=async()=>{
   try{await navigator.clipboard.writeText(SKILL);sstat('Skill copied. Paste it into any AI, or save it as a file.');}
   catch(e){const t=$('skilltxt2');t.select();let ok=false;try{ok=document.execCommand('copy');}catch(_){}sstat(ok?'Skill copied.':'Select the text and copy it manually.',!ok);}
@@ -1223,7 +1341,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
   /* ---------- display panel ---------- */
   function openRemote(){
     playing=false;
-    try{closeSkill();closePanel();}catch(e){}
+    try{closeSkill();closePanel();closeSheet();}catch(e){}
     $('remotep').classList.add('open');
     roomUI();paintNet();
   }

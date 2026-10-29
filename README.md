@@ -56,12 +56,26 @@ Both devices stay in sync in both directions — if you tap the screen itself, t
 
 The normal stage is portrait-shaped, so on a phone propped up a few metres away the words are small. Tap **Landscape** in the top bar (or the **Landscape** chip on the remote) and the stage goes edge to edge and the type grows to the largest size that still fits the line — up to three lines, never breaking a word.
 
-In this mode only the words remain: the face prompt, the speed readout, the progress line and the word map step aside, and unspoken words stay dim-but-readable instead of nearly invisible. The mode bar and the controls fade out as usual and come back on a tap, so a glance from across the room shows nothing but text.
+In this mode only the words remain: the face prompt, the speed readout, the progress line and the word map step aside. Spoken words stay white, words you have not reached yet drop to a third of their brightness, and the word you are on right now is gold — so from far away you can always see exactly where you are in the line. The mode bar and the controls fade out as usual and come back on a tap.
 
 The choice is saved per device, so a phone that lives on a tripod comes back in landscape, and **W** toggles it from a keyboard.
 
 <p align="center">
-  <img src="docs/landscape.png" alt="Landscape mode: full-width stage with very large type" width="620">
+  <img src="docs/landscape.png" alt="Landscape mode: full-width stage, unspoken words dimmed, current word in gold" width="620">
+</p>
+
+---
+
+## Rehearse first: the table
+
+Tap **Table** in the top bar (or press **T**) for a rehearsal sheet of the whole script — one row per line with its **time**, the **line** itself, the **face / delivery** cue and how long it stays up (**show + pause**). Sections are grouped with their direction, e.g. *Build — fast · each line quicker*, so you can read the whole thing once and know where the voice changes before you start.
+
+- Tap any row to jump the prompter to that line; it stays paused so you can read it, then tap the screen to play.
+- The row for the line you are on is marked in gold and follows along while it plays.
+- Lesson and custom scripts get the expression from their section direction when a line has no `face=`, so no row is ever empty.
+
+<p align="center">
+  <img src="docs/table.png" alt="Rehearsal table: time, line, face and timing for every line" width="300">
 </p>
 
 ---
