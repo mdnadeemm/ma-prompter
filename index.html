@@ -40,6 +40,8 @@
   #map .ph{position:absolute;bottom:8px;top:0;width:1px;background:#fff;opacity:.6}
   .noguide #dir,.noguide #hold,.noguide #map{display:none}
   #modes #gd.on{color:#ddd}
+  #modes #voice.on{color:#e9b949}
+  #modes #voice.on:after{content:"●";font-size:.45em;vertical-align:.45em;margin-left:.35em;letter-spacing:0}
   .w{opacity:.3;transition:opacity .18s,color .18s}
   .w.said{opacity:1}
   .w.now{color:#e9b949}
@@ -266,7 +268,7 @@
 <div id="frame">
   <video id="cam" autoplay playsinline muted></video>
   <div id="toast"></div>
-  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sh">Table</button><button id="pg">Pace</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
+  <div id="modes"><button data-m="reel" class="on">Reel</button><button data-m="lesson">Lesson</button><button data-m="custom" id="mine" style="display:none">Mine</button><button id="gd" class="on">Guides</button><button id="sc">Script</button><button id="sh">Table</button><button id="pg">Pace</button><button id="sk">Skill</button><button id="mr">Camera</button><button id="fl">Mirror</button><button id="voice" aria-label="Voice follow: the highlighted word waits for you to say it">Voice</button><button id="wd" aria-label="Landscape view: full width, big text for reading from a distance">Landscape</button></div>
   <div id="dir"></div>
   <div id="t" class="dim">tap to begin</div>
   <div id="hold"><i></i><span></span></div>
@@ -649,7 +651,12 @@ function render(){
       if(rest){const x=document.createElement('span');x.className='ex';x.textContent=rest;faceEl.appendChild(x);}
     }
   }
-  if(cur&&inLine){
+  if(voiceOn){
+    const base=CUEW[ci]>=0?CUEW[ci]:-1,n=base>=0?(CUEN[ci]||0):0;
+    const said=base>=0?Math.max(0,Math.min(n,vPos-base)):0;
+    spdEl.textContent=vListening?(vMsg?'voice · heard “'+vMsg+'”':'voice · listening…'):(recWant?'voice · starting mic…':'voice · waiting for you');
+    lpEl.firstChild.style.width=(n?said/n*100:0)+'%';
+  }else if(cur&&inLine){
     const into2=pos-cur.st,nw=cur.x.split(' ').length,wps=nw/(cur.s*.9/1000);
     spdEl.textContent=wps.toFixed(1)+' words/s · '+(wps<2?'slow':wps>3?'fast':'normal')+' · ends in '+((cur.s-into2)/1000).toFixed(1)+'s';
     lpEl.firstChild.style.width=(into2/cur.s*100)+'%';
@@ -668,6 +675,17 @@ function render(){
     if(into<c.s){
       const fade=Math.max(1,Math.min(600,c.s*.3));
       setText(c.x,c.x==='間'?'big':'');
+      if(voiceOn){
+        const base=CUEW[i]>=0?CUEW[i]:-1;
+        let said=0;
+        if(base>=0&&words.length)said=Math.max(0,Math.min(words.length,vPos-base));
+        for(let k=0;k<words.length;k++){
+          words[k].classList.toggle('said',k<said);
+          words[k].classList.toggle('now',k===said-1);
+        }
+        el.style.opacity=1;
+        return;
+      }
       if(words.length){
         const p=into/(c.s*.9);let nowI=-1;
         for(let k=0;k<words.length;k++){
@@ -686,7 +704,7 @@ function render(){
 
 function frameTick(now){
   if(playing){
-    pos+=now-last;
+    if(!voiceOn)pos+=now-last;
     if(pos>=track.total){pos=track.total;playing=false;}
     const i=idxAt(pos);
     if(i!==lastIdx){if(playing&&i>=0&&pos-track.cues[i].st<300)thud();lastIdx=i;}
@@ -708,14 +726,20 @@ function toggle(){
     try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();ctx.resume();}catch(e){}
     if(pos>=track.total)pos=0;
     fresh=false;playing=true;lastIdx=idxAt(pos);
-  }else playing=false;
+    if(voiceOn){vSync();vStartRec();}
+  }else{
+    playing=false;
+    if(voiceOn)vStopRec();
+  }
 }
 function seekTo(ms){
   pos=Math.max(0,Math.min(track.total,ms));fresh=false;lastIdx=idxAt(pos);wake();
+  if(voiceOn)vSync();
 }
 function setMode(m){
   mode=m;track=TRACKS[m];if(typeof applyPace==='function')applyPace(track);
   pos=0;playing=false;fresh=true;lastIdx=-1;shownKey='';
+  if(voiceOn){buildTokens();vSync();vStopRec();}
   document.querySelectorAll('#modes button[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===m));buildMap();dirKey='';
   if(sheetEl.classList.contains('open'))buildSheet();
 }
@@ -732,6 +756,7 @@ modes.addEventListener('click',e=>{
   if(b.id==='mr'){setMirror((mirrorLvl+1)%3);return;}
   if(b.id==='fl'){frame.classList.toggle('flip');b.classList.toggle('on');return;}
   if(b.id==='wd'){setWide(!document.body.classList.contains('wide'));return;}
+  if(b.id==='voice'){setVoice(!voiceOn);return;}
   if(b.dataset.m)setMode(b.dataset.m);
 });
 try{if(localStorage.getItem('maWide')==='1')setWide(true)}catch(e){}
@@ -751,6 +776,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='g'||e.key==='G')$('gd').click();
   else if(e.key==='w'||e.key==='W')setWide(!document.body.classList.contains('wide'));
   else if(e.key==='t'||e.key==='T'){if(sheetEl.classList.contains('open'))closeSheet();else openSheet();}
+  else if(e.key==='v'||e.key==='V')setVoice(!voiceOn);
   else if(e.key==='p'||e.key==='P'){if($('pacep').classList.contains('open'))closePace();else openPace();}
 });
 // ---------- Script panel: parse pasted "Ma Script" and play it ----------
@@ -1103,6 +1129,146 @@ $('pgsvg').addEventListener('pointermove',e=>{if(paceDrag<0)return;e.preventDefa
   if(paceDrag<0)return;paceDrag=-1;setPace('custom');renderPaceEditor();
 }));
 addEventListener('resize',()=>{if($('pacep').classList.contains('open'))renderPaceEditor();});
+
+// ---------- Voice follow: the gold word waits for you ----------
+/* Speech recognition replaces the word-level timing only. A line is finished when
+   its last word is heard; the scripted pause (the ma) then runs exactly as written,
+   and the next line appears afterwards — or sooner, the moment you speak it. */
+let voiceOn=false,vPos=0,vCue=-1,vMsg='',vListening=false,rec=null,recWant=false,recTimer=0;
+let TOK=[],CUEW=[],CUEN=[];
+const vConsumed={};
+const vnorm=w=>w.toLowerCase().replace(/[^a-z0-9']/g,'').replace(/^'+|'+$/g,'');
+function buildTokens(){
+  TOK=[];CUEW=[];CUEN=[];
+  if(!track||!track.cues)return 0;
+  track.cues.forEach((c,ci)=>{
+    CUEW[ci]=-1;CUEN[ci]=0;
+    if(!c.x||c.x==='間')return;
+    const ws=c.x.split(/\s+/).filter(Boolean);
+    if(!ws.length)return;
+    CUEW[ci]=TOK.length;CUEN[ci]=ws.length;
+    ws.forEach(w=>TOK.push({w:vnorm(w),ci}));
+  });
+  return TOK.length;
+}
+function vNextWord(ci){const j=TOK.findIndex(t=>t.ci>=ci);return j<0?TOK.length:j;}
+function vSync(){
+  const ci=idxAt(pos);
+  if(ci<0){vPos=0;vCue=-1;return;}
+  vCue=ci;
+  const base=CUEW[ci],n=CUEN[ci]||0;
+  if(base<0){vPos=vNextWord(ci);return;}
+  const c=track.cues[ci],f=c.s>0?Math.max(0,Math.min(1,(pos-c.st)/c.s)):0;
+  vPos=base+Math.round(f*n);
+}
+function vEnter(ci){
+  if(ci>=track.cues.length){pos=track.total;playing=false;vMsg='end';vStopRec();return;}
+  vCue=ci;vPos=vNextWord(ci);pos=track.cues[ci].st;fresh=false;vMsg='';
+}
+function vGoto(next){
+  if(!voiceOn||next<=vPos)return;
+  const tok=TOK[next-1];if(!tok)return;
+  vPos=next;vMsg=tok.w;
+  const ci=tok.ci,c=track.cues[ci];if(!c)return;
+  if(ci!==vCue)vCue=ci;
+  fresh=false;
+  const base=CUEW[ci],n=CUEN[ci]||1,said=Math.max(0,Math.min(n,vPos-base));
+  if(said>=n){vEnter(ci+1);return;}   // scripted pause is skipped: your silence is the pause
+  pos=c.st+Math.min(c.s*.95,c.s*.9*said/n+1);
+  wake();
+}
+function lev1(a,b){
+  if(Math.abs(a.length-b.length)>1)return false;
+  let i=0,j=0,d=0;
+  while(i<a.length&&j<b.length){
+    if(a[i]===b[j]){i++;j++;continue;}
+    if(++d>1)return false;
+    if(a.length>b.length)i++;else if(a.length<b.length)j++;else{i++;j++;}
+  }
+  return d+(a.length-i)+(b.length-j)<=1;
+}
+function vMatch(tok,exactOnly){
+  const h=vnorm(tok);if(h.length<2)return false;
+  const lim=Math.min(TOK.length,vPos+12);
+  for(let j=vPos;j<lim;j++){
+    const t=TOK[j].w;if(!t)continue;
+    const hit=t===h||(h.length>=4&&t.startsWith(h))||(!exactOnly&&h.length>=5&&t.length>=5&&lev1(h,t));
+    if(hit){vGoto(j+1);return true;}
+  }
+  return false;
+}
+function vTokens(toks,isFinal){
+  for(let k=0;k<toks.length;k++){
+    const last=!isFinal&&k===toks.length-1;
+    vMatch(toks[k],last);
+  }
+}
+function vStartRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return 'unsupported';
+  recWant=true;
+  if(rec)return 'on';
+  let r;
+  try{r=new SR();}catch(e){return 'unsupported';}
+  for(const k in vConsumed)delete vConsumed[k];
+  r.lang='en-US';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  r.onstart=()=>{vListening=true;vMsg='';};
+  r.onend=()=>{
+    vListening=false;rec=null;
+    if(recWant&&voiceOn&&playing)recTimer=setTimeout(()=>{if(recWant&&voiceOn&&playing)vStartRec();},300);
+  };
+  r.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      recWant=false;vListening=false;
+      toast('Microphone blocked. Allow it for this page, then tap Voice again.');
+      setVoice(false);
+    }
+  };
+  r.onresult=ev=>{
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const res=ev.results[i],toks=res[0].transcript.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const lim=res.isFinal?toks.length:Math.max(0,toks.length-1);
+      const start=vConsumed[i]||0;
+      for(let k=start;k<lim;k++)vMatch(toks[k]);
+      if(!res.isFinal&&toks.length>lim)vMatch(toks[lim],true);
+      vConsumed[i]=Math.max(start,lim);
+    }
+  };
+  try{r.start();}catch(e){recWant=false;return 'error';}
+  rec=r;return 'on';
+}
+function vStopRec(){
+  recWant=false;clearTimeout(recTimer);
+  try{rec&&rec.abort();}catch(e){}
+  rec=null;vListening=false;
+}
+function setVoice(on){
+  on=!!on;
+  if(on){
+    if(buildTokens()<4){
+      toast('Voice follow needs a script written in words separated by spaces.');
+      return;
+    }
+    voiceOn=true;
+    const b=$('voice');if(b)b.classList.add('on');
+    if(fresh||pos>=track.total){fresh=false;pos=track.cues[0]?track.cues[0].st:0;}
+    if(!playing)playing=true;
+    vSync();
+    const st=vStartRec();
+    if(st==='unsupported'){
+      toast('This browser has no speech recognition. Use Chrome, Edge or Safari.');
+      voiceOn=false;if(b)b.classList.remove('on');
+    }else if(st==='error'){
+      toast('Could not start the microphone. Check the browser permission.');
+    }
+  }else{
+    voiceOn=false;vStopRec();
+    const b=$('voice');if(b)b.classList.remove('on');
+  }
+  wake();render();
+}
+// test hook: feed recognised words without a microphone
+window.maVoice={feed:(t,f)=>vTokens(String(t).toLowerCase().split(/\s+/).filter(Boolean),f!==false)};
 
 // ---------- Mirror: front camera behind the text ----------
 let camStream=null,mirrorLvl=0;
@@ -1475,7 +1641,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
   const CMD={
     toggle(){ toggle(); },
     play(){ if(!playing)toggle(); },
-    pause(){ if(playing){playing=false;wake();} },
+    pause(){ if(playing){playing=false;if(voiceOn)vStopRec();wake();} },
     seek(d){ seekTo(+d.ms||0); },
     nudge(d){ seekTo(pos+(+d.ms||0)); },
     restart(){ seekTo(0); },

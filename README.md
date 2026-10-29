@@ -99,6 +99,25 @@ Underneath is the graph itself: nine dots on a speed axis from **0.5×** (half s
 
 ---
 
+## Follow your voice
+
+Sometimes the words come out faster or slower than the script guessed. Tap **Voice** in the top bar (or press **V**) and the prompter stops counting seconds for the words and listens instead: say a word and it turns white, the gold cursor moves to the next word, and the line changes the instant you finish its last word.
+
+- Speech replaces the **word-level** timing only, on the device that has the mic. The moment you finish a line the next one appears — the written `pause` is skipped, because your own silence is the *ma* now.
+- **Silence freezes the cursor.** Stop talking and the gold word simply waits for you, however long you take.
+- It only has to hear roughly the right thing: fillers (*um*, *so*), a dropped word or a single misheard letter are ignored, and it never jumps backwards.
+- **Pace** curves and the script's `show` times are ignored while Voice is on; turn it off and the clock — or the graph — takes over again exactly as before.
+- The line under the words tells you what is happening: *voice · listening…*, *voice · heard “hand”*, *voice · waiting for you*.
+- Jump or scrub to another line and the cursor re-syncs to that line's first word, so you can restart mid-sentence.
+
+Voice uses the browser's own speech recognition (Chrome, Edge and Safari; iOS works but its recognizer can stop on a long silence, so the app restarts it). It needs the microphone and an internet connection — the audio goes to the browser maker's speech service, not to us. If the mic is blocked, Voice turns itself off and says why. It is never remembered across reloads, because browsers only allow a mic after a tap.
+
+<p align="center">
+  <img src="docs/voice.png" alt="Voice follow: the words spoken so far are white, the current word is gold, and the status line shows what was heard" width="300">
+</p>
+
+---
+
 ## How it works
 
 Both pages connect to a **public MQTT broker over WebSocket** (EMQX, with HiveMQ as a fallback):
