@@ -102,6 +102,7 @@ There is no server of yours, nothing to deploy, nothing to pay for.
 - **The screen stays awake** while the prompter or the remote is open (where the browser supports the Wake Lock API).
 - **If the relay is blocked** (some sandboxed previews block WebSocket), the status says *no relay connection*. Open the file in a normal browser tab instead.
 - If a device goes offline, commands sent meanwhile are queued and delivered on reconnect.
+- **A command is never sent just once.** Every tap is repeated a few times over ~4 seconds and repeats are ignored on arrival, so a dropped packet on a busy public broker doesn't cost you the tap. The screen also re-publishes its state a few times a second, and reconnects within ~5 seconds if the socket drops.
 
 ---
 

@@ -934,7 +934,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
       clearInterval(ping);ping=null;clearTimeout(timer);
       fails++;
       h.err(fails);
-      timer=setTimeout(open,Math.min(12000,700*fails)*(0.7+Math.random()*0.6));
+      timer=setTimeout(open,Math.min(5000,500*fails)*(0.7+Math.random()*0.6));
     }
     function open(){
       if(!want)return;
@@ -1205,7 +1205,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
   function SNAP(){
     const i=idxAt(pos),c=i>=0?track.cues[i]:null;
     const inLine=!!(c&&!fresh&&(pos-c.st)<c.s);
-    return {k:'s',playing,pos:Math.round(pos),total:track.total,mode,
+    return {k:'s',playing,pos:Math.round(pos/500)*500,total:track.total,mode,
       muted,cam:mirrorLvl,flip:frame.classList.contains('flip'),
       guides:!frame.classList.contains('noguide'),wide:document.body.classList.contains('wide'),custom:!!TRACKS.custom,
       line:inLine?c.x:'',next:(track.cues[i+1]||{}).x||'',fresh};
@@ -1288,8 +1288,9 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     const msg=scramble(Object.assign({k:'c',t,id:me,seq},extra||{}),room);
     const fire=()=>{if(relay)relay.pub(msg);};
     fire();
-    setTimeout(fire,600);
-    setTimeout(fire,1600);
+    setTimeout(fire,700);
+    setTimeout(fire,2000);
+    setTimeout(fire,4000);
   }
 
   /* ---------- relay lifecycle ---------- */
@@ -1453,7 +1454,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     paintCtrl();keepAwake();
   }
   setInterval(()=>{if(role==='display')pushSnap(true);},4000);
-  setInterval(()=>{if(role==='display')pushSnap(false);},250);
+  setInterval(()=>{if(role==='display')pushSnap(false);},300);
   setInterval(()=>{
     paintNet();
     if(role==='control'&&relay&&relay.up)relay.pub(scramble({k:'q'},room));
