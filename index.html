@@ -269,6 +269,27 @@
   .ctogs button.on{color:#9e9;border-color:#2e3a2e}
   .ctogs{flex-wrap:wrap}
   .ctogs button{flex:1 1 28%}
+  /* saved scripts on the remote: one scrolling row of chips */
+  .cscripts{display:none;gap:8px;margin-top:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:1px 0 2px}
+  .cscripts.show{display:flex}
+  .cscripts::-webkit-scrollbar{display:none}
+  .cscripts button{flex:none;height:38px;max-width:62vw;padding:0 14px;border-radius:19px;background:#0c0c0c;border:1px solid #202020;
+    color:#8a8a8a;font:inherit;font-size:.78rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .08s}
+  .cscripts button:active{transform:scale(.97)}
+  .cscripts button.on{color:#e9b949;border-color:#6b5522;background:#141006}
+  @media (max-height:560px){
+    #cnext{display:none}
+    .cnow{gap:8px;padding:4px 0}
+    #cline{font-size:1.1rem;line-height:1.3;max-height:2.6em}
+    .cprog{height:26px}
+    .ctime{font-size:11px}
+    .cpads button{height:52px}
+    .cpads button.cbig{width:74px;height:74px;font-size:1.4rem}
+    .cmodes,.ctogs,.cscripts{margin-top:8px}
+    .cmodes button,.ctogs button{height:38px}
+    .cscripts button{height:32px}
+  }
   #join{position:absolute;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;
     padding:calc(env(safe-area-inset-top,0px) + 20px) 28px calc(env(safe-area-inset-bottom,0px) + 20px);text-align:center}
   #join.show{display:flex}
@@ -445,6 +466,7 @@ The user copies the script block, opens the Ma Pacing app, taps **Script**, past
     <button data-act="stop" aria-label="Stop and rewind">■</button>
   </div>
   <div class="cmodes"><button data-mode="reel">Reel</button><button data-mode="lesson">Lesson</button><button data-mode="custom">Mine</button></div>
+  <div id="cscripts" class="cscripts" role="group" aria-label="Saved scripts"></div>
   <div class="ctogs"><button data-tog="mute">Sound</button><button data-tog="cam">Camera</button><button data-tog="flip">Flip</button><button data-tog="guides">Guides</button><button data-tog="wide">Landscape</button></div>
   <div id="join">
     <div class="jt">Connect to a display</div>
@@ -1818,6 +1840,7 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     return {k:'s',playing,pos:Math.round(pos/500)*500,total:track.total,mode,
       muted,cam:mirrorLvl,flip:frame.classList.contains('flip'),
       guides:!frame.classList.contains('noguide'),wide:document.body.classList.contains('wide'),custom:!!TRACKS.custom,
+      scripts:SCRIPTS.slice(0,20).map(s=>({id:s.id,n:(s.name||'Untitled').slice(0,40)})),scriptId:customId,
       line:inLine?c.x:'',next:(track.cues[i+1]||{}).x||'',fresh};
   }
   function pushSnap(force){
@@ -1834,6 +1857,19 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     nudge(d){ seekTo(pos+(+d.ms||0)); },
     restart(){ seekTo(0); },
     mode(d){ if(TRACKS[d.m])setMode(d.m); },
+    script(d){
+      const s=scriptById(d.id);
+      if(!s)return;
+      selId=s.id;
+      try{localStorage.setItem(LS_SEL,selId);}catch(e){}
+      $('src').value=s.src;
+      dirty=false;delArm='';pendId='';
+      if(!loadCustom(s.src,false)){buildLib();return;}
+      customId=s.id;
+      setMode('custom');
+      buildLib();
+      if($('panel').classList.contains('open'))stat('Remote switched to “'+(s.name||'Script')+'”.');
+    },
     mute(d){ muted=!!d.v; $('mu').style.opacity=muted?.35:1; },
     cam(d){ setMirror(+d.l|0); },
     flip(d){ frame.classList.toggle('flip',!!d.v); $('fl').classList.toggle('on',!!d.v); },
@@ -1857,8 +1893,8 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
   }
 
   /* ---------- controller side ---------- */
-  let st={playing:false,pos:0,total:0,mode:'reel',muted:false,cam:0,flip:false,guides:true,wide:false,custom:false,line:'',next:'',fresh:true};
-  let lastSeen=0,scrub=false,scrubT=0,statusLock=0,cmdSeq=0;
+  let st={playing:false,pos:0,total:0,mode:'reel',muted:false,cam:0,flip:false,guides:true,wide:false,custom:false,scripts:[],scriptId:'',line:'',next:'',fresh:true};
+  let lastSeen=0,scrub=false,scrubT=0,statusLock=0,cmdSeq=0,scriptSig='',scriptAsk=null;
   function tog(k,on){const b=document.querySelector('.ctogs button[data-tog="'+k+'"]');if(b)b.classList.toggle('on',!!on);}
   function paintCtrl(){
     if(role!=='control')return;
@@ -1874,8 +1910,27 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
       b.classList.toggle('on',b.dataset.mode===st.mode);
       if(b.dataset.mode==='custom')b.style.display=st.custom?'':'none';
     });
+    paintScripts();
     tog('mute',!st.muted);tog('cam',st.cam>0);tog('flip',st.flip);tog('guides',st.guides);tog('wide',st.wide);
     paintNet();
+  }
+  /* the display owns the saved scripts: it sends their names with every
+     snapshot, and tapping one here asks it to load and switch to that script */
+  function paintScripts(){
+    const box=$('cscripts');if(!box)return;
+    const list=Array.isArray(st.scripts)?st.scripts:[];
+    const sig=list.map(s=>s.id+'|'+s.n).join('\u0001');
+    if(sig!==scriptSig){
+      scriptSig=sig;box.innerHTML='';
+      list.forEach(s=>{
+        const b=document.createElement('button');
+        b.type='button';b.dataset.id=s.id;b.textContent=s.n||'Untitled';
+        b.setAttribute('aria-label','Play '+(s.n||'script'));
+        box.appendChild(b);
+      });
+    }
+    box.classList.toggle('show',list.length>0);
+    for(const b of box.children)b.classList.toggle('on',b.dataset.id===st.scriptId);
   }
   function paintNet(){
     const fresh=Date.now()-lastSeen<9000;
@@ -1920,6 +1975,13 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
           else if(d.k==='q'){ctrlSeen=Date.now();paintNet();pushSnap(true);}
         }else if(d.k==='s'){
           lastSeen=Date.now();
+          if(!Array.isArray(d.scripts)){d.scripts=[];d.scriptId='';}
+          if(scriptAsk){
+            /* while the command is in flight, keep the optimistic choice so an
+               older snapshot that is still crossing the relay cannot flicker it back */
+            if((d.scriptId===scriptAsk.id&&d.mode==='custom')||Date.now()-scriptAsk.t>6000)scriptAsk=null;
+            else{d.scriptId=scriptAsk.id;d.mode='custom';d.custom=true;d.fresh=true;d.pos=0;}
+          }
           if(!scrub){st=Object.assign(st,d);paintCtrl();}
         }
       },
@@ -1990,8 +2052,16 @@ requestAnimationFrame(t=>{last=t;frameTick(t);});
     else if(a==='fwd'){ctrlSend('nudge',{ms:5000});}
   }));
   document.querySelectorAll('.cmodes button').forEach(b=>b.addEventListener('click',()=>{
+    scriptAsk=null;
     st.mode=b.dataset.mode;paintCtrl();ctrlSend('mode',{m:b.dataset.mode});
   }));
+  $('cscripts').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.id===st.scriptId&&st.mode==='custom')return; // already loaded: do not reset the take
+    scriptAsk={id:b.dataset.id,t:Date.now()};
+    st.scriptId=b.dataset.id;st.mode='custom';st.custom=true;st.fresh=true;st.pos=0;
+    paintCtrl();ctrlSend('script',{id:b.dataset.id});
+  });
   document.querySelectorAll('.ctogs button').forEach(b=>b.addEventListener('click',()=>{
     const t=b.dataset.tog;
     if(t==='mute'){st.muted=!st.muted;ctrlSend('mute',{v:st.muted});}

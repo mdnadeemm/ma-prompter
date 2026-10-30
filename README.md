@@ -40,6 +40,7 @@ The code is remembered, so the next time both devices reconnect on their own.
 | −5 / +5 | jump 5 seconds |
 | drag the progress bar | scrub to any point |
 | Reel / Lesson / Mine | switch the script |
+| a saved script chip | load that saved script and switch to Mine |
 | Sound | mute the pulse sound |
 | Camera | camera backdrop off → faint → strong |
 | Flip | mirror the text (for a beam splitter) |
@@ -47,6 +48,8 @@ The code is remembered, so the next time both devices reconnect on their own.
 | Landscape | full-width stage with the biggest type that fits — for reading from far away |
 
 The remote also shows the current line, the next line, the clock and the section, so you can read along.
+
+Every script you have saved on the prompter appears on the remote as a row of chips just below Reel / Lesson / Mine — the one that is loaded is gold. Tap another one and the prompter loads it, switches to **Mine** and waits at the top of the script, so you can change the whole take from your phone without touching the prompter. The list belongs to the prompter: save or delete a script there and the remote row follows. Tapping the chip that is already loaded does nothing, so a stray tap cannot reset a take that is running. If there are no saved scripts the row is not shown at all.
 
 Both devices stay in sync in both directions — if you tap the screen itself, the remote updates too.
 
