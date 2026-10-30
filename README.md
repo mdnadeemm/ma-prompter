@@ -118,6 +118,24 @@ Voice uses the browser's own speech recognition (Chrome, Edge and Safari; iOS wo
 
 ---
 
+## Add your own scripts — and keep them
+
+Tap **Script** in the top bar. The panel is the editor plus a small library of everything you have saved on this device.
+
+- Paste or write a script, then press **Done**: it is saved, plays from the top, and the panel closes. If you had opened a saved script, Done updates that one instead of adding a copy.
+- **+ New** clears the editor and drops in a two-line template, so the next Done adds a separate script.
+- Tap a saved row to load it into the editor — the gold row is the one you are editing.
+- The **✕** on the right of a row deletes it. It asks once (the button turns into **Delete**) so a stray tap cannot wipe a script.
+- **Play** tries the text without adding it to the library, and **Example** / **Copy AI prompt** are still there.
+
+Saved scripts stay on the device and show up as **Mine** in the mode bar; the rehearsal table shows the script's name. If you edit one row and then tap a different script, the first tap warns you — a second tap throws the edits away. Deleting the last script removes Mine and returns to Reel.
+
+<p align="center">
+  <img src="docs/scripts.png" alt="The script panel: editor, done and play, and the saved-scripts list" width="300">
+</p>
+
+---
+
 ## How it works
 
 Both pages connect to a **public MQTT broker over WebSocket** (EMQX, with HiveMQ as a fallback):

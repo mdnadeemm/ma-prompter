@@ -77,7 +77,27 @@
   #panel button.main,#skillp button.main,#remotep button.main{background:#fff;color:#000;border-color:#fff}
   #src,#skilltxt2{flex:1;min-height:0;background:#000;color:#ddd;border:1px solid #222;border-radius:6px;padding:12px;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;resize:none;outline:none;white-space:pre-wrap;overflow:auto}
   #pstat,#sstat{min-height:1.4em;margin:10px 0;color:#999;font-size:.9rem}
-  .pbtn{display:flex;gap:8px;flex-wrap:wrap}
+  .pbtn{display:flex;gap:8px;flex-wrap:wrap;flex:none;margin-top:10px}
+  .paux{display:flex;gap:8px;flex-wrap:wrap;flex:none;margin-top:6px}
+  .paux button{font-size:.84rem;padding:7px 11px;color:#999}
+  /* saved scripts */
+  .plib{border-top:1px solid #1a1a1a;margin-top:2px;padding-top:10px;display:flex;flex-direction:column;min-height:0;flex:0 1 auto;overflow:hidden}
+  .pbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:none}
+  .pbar>span{color:#6f6f6f;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;margin-right:auto}
+  #pdirty{display:none;color:#e9b949;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase}
+  #plist{display:flex;flex-direction:column;gap:6px;max-height:24vh;overflow:auto;overscroll-behavior:contain;min-height:0;flex:0 1 auto}
+  .sitem{display:flex;align-items:center;gap:8px;background:#0d0d0d;border:1px solid #1f1f1f;border-radius:7px;padding:7px 8px;cursor:pointer}
+  .sitem:focus-visible{outline:2px solid #e9b949;outline-offset:1px}
+  .sitem.on{border-color:#e9b949;background:#12100a}
+  .sitem .sn{flex:1;min-width:0;color:#ddd;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sitem.on .sn{color:#e9b949}
+  .sitem .sm{color:#5f5f5f;font-size:.7rem;white-space:nowrap}
+  #panel .pbar button{font-size:.78rem;padding:5px 10px}
+  #panel .sitem button{width:26px;height:26px;padding:0;font-size:.85rem;line-height:1;color:#666;background:none;border:1px solid #262626;border-radius:5px;flex:none}
+  #panel .sitem button:hover{color:#e88;border-color:#5a2a2a}
+  #panel .sitem button.arm{width:auto;padding:0 9px;color:#e88;border-color:#7a2a2a;background:#1b0d0d;font-size:.72rem}
+  .sempty{color:#555;font-size:.78rem;line-height:1.4;padding:1px 1px 4px}
+  @media (max-height:520px){#plist{max-height:15vh}.sempty{display:none}}
   /* rehearsal table */
   #sheetp{position:fixed;top:0;bottom:0;right:0;width:min(720px,100vw);background:#070707;border-left:1px solid #222;
     transform:translateX(100%);transition:transform .35s ease;z-index:21;display:flex;flex-direction:column;
@@ -86,7 +106,7 @@
   #sheetp.open{transform:none}
   #sheetp button{background:#161616;border:1px solid #2a2a2a;color:#ccc;font:inherit;font-size:.9rem;padding:8px 12px;border-radius:6px;cursor:pointer}
   .smeta{display:flex;gap:12px;align-items:baseline;color:#6f6f6f;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;margin:0 4px 10px}
-  .smeta b{color:#dedede;font-weight:600}
+  .smeta b{color:#dedede;font-weight:600;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .smeta .shint{margin-left:auto;color:#4d4d4d;letter-spacing:.06em;text-transform:none;font-size:.74rem}
   .shead,.srow{display:grid;grid-template-columns:4.2em minmax(0,1fr);grid-template-areas:"t x" "t f";column-gap:10px}
   .shead{color:#5c5c5c;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;padding:0 6px 6px;border-bottom:1px solid #242424}
@@ -439,7 +459,12 @@ The user copies the script block, opens the Ma Pacing app, taps **Script**, past
   <div class="ph2"><span>Script</span><button id="pclose" aria-label="Close">✕</button></div>
   <textarea id="src" spellcheck="false"></textarea>
   <div id="pstat"></div>
-  <div class="pbtn"><button id="papply" class="main">Play this script</button><button id="pex">Example</button><button id="pcopy">Copy AI prompt</button></div>
+  <div class="plib">
+    <div class="pbar"><span id="plibn">Saved scripts</span><b id="pdirty">unsaved</b><button id="pnew">+ New</button></div>
+    <div id="plist" role="list"></div>
+  </div>
+  <div class="pbtn"><button id="pdone" class="main">Done</button><button id="papply">Play</button></div>
+  <div class="paux"><button id="pex">Example</button><button id="pcopy">Copy AI prompt</button></div>
 </div>
 <script>
 // [text, showMs, blankMs] — the blank is the ma (間): the pause that gives the words weight.
@@ -848,20 +873,183 @@ function loadCustom(src,activate){
   if(activate)setMode('custom');
   return true;
 }
-function openPanel(){playing=false;closeSkill();closeSheet();closePace();$('panel').classList.add('open');}
+function openPanel(){playing=false;closeSkill();closeSheet();closePace();buildLib();$('panel').classList.add('open');}
 function closePanel(){$('panel').classList.remove('open');}
 $('pclose').onclick=closePanel;
-$('pex').onclick=()=>{$('src').value=EXAMPLE;stat('Example loaded. Press Play this script.');};
+
+/* ---------- Saved scripts: add, pick, delete, Done ----------
+   The list lives in localStorage (maScripts); the selected script becomes the
+   "Mine" track. Done saves the editor (new entry or an update of the selected
+   one), plays it and closes; Play tries the text without touching the library. */
+const LS_SCRIPTS='maScripts',LS_SEL='maScriptSel';
+let SCRIPTS=[],selId='',customId='',delArm='',pendId='',dirty=false;
+const newId=()=>'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const NEW_TEMPLATE='# My script\n\n## Hook | slow · low voice\nFirst line I say. | show=3 | pause=1.5 | face=😐 calm\n\n## Land | quiet\nLast line I say. | show=3 | pause=2 | face=🙂 warm\n';
+
+function srcTitle(src){
+  const r=parseScript(src);
+  if(r.title)return r.title.slice(0,60);
+  const first=(r.arr[0]&&r.arr[0][0])||'';
+  return first?first.slice(0,46)+(first.length>46?'…':''):'Untitled script';
+}
+function scriptById(id){return SCRIPTS.find(s=>s.id===id)||null;}
+function saveScripts(){
+  try{localStorage.setItem(LS_SCRIPTS,JSON.stringify(SCRIPTS));return true;}
+  catch(e){stat('Could not save — this browser’s storage is full.',true);return false;}
+}
+function loadScripts(){
+  try{
+    const a=JSON.parse(localStorage.getItem(LS_SCRIPTS)||'[]');
+    if(Array.isArray(a))SCRIPTS=a.filter(s=>s&&s.id&&typeof s.src==='string');
+  }catch(e){SCRIPTS=[];}
+  // earlier versions kept one script under maScript: bring it into the library
+  try{
+    const old=localStorage.getItem('maScript');
+    if(old){
+      if(!SCRIPTS.some(s=>s.src===old)){
+        const r=parseScript(old);
+        if(r.arr.length){
+          SCRIPTS.unshift({id:newId(),name:srcTitle(old),src:old,lines:r.arr.length,dur:fmt(build(r.arr).total),at:Date.now()});
+          saveScripts();
+        }
+      }
+      localStorage.removeItem('maScript');
+    }
+  }catch(e){}
+  try{selId=localStorage.getItem(LS_SEL)||'';}catch(e){selId='';}
+  if(!scriptById(selId))selId=SCRIPTS[0]?SCRIPTS[0].id:'';
+}
+function paintDirty(){const d=$('pdirty');if(d)d.style.display=dirty?'inline-block':'none';}
+function buildLib(){
+  const box=$('plist');if(!box)return;
+  box.innerHTML='';
+  const n=$('plibn');if(n)n.textContent=SCRIPTS.length?'Saved · '+SCRIPTS.length:'Saved scripts';
+  paintDirty();
+  if(!SCRIPTS.length){
+    const e=document.createElement('div');e.className='sempty';
+    e.textContent='Nothing saved yet. Paste or write a script above, then press Done — it stays here for next time.';
+    box.appendChild(e);return;
+  }
+  SCRIPTS.forEach(s=>{
+    const r=document.createElement('div');
+    r.className='sitem'+(s.id===selId?' on':'');r.tabIndex=0;r.dataset.id=s.id;r.setAttribute('role','button');
+    r.setAttribute('aria-label',s.name||'Script');
+    const nm=document.createElement('span');nm.className='sn';nm.textContent=s.name||'Untitled';
+    const mt=document.createElement('span');mt.className='sm';mt.textContent=(s.lines||0)+' line'+((s.lines||0)===1?'':'s')+(s.dur?' · '+s.dur:'');
+    const del=document.createElement('button');del.type='button';
+    del.className='sd'+(delArm===s.id?' arm':'');del.textContent=delArm===s.id?'Delete':'✕';
+    del.setAttribute('aria-label',delArm===s.id?'Confirm delete':'Delete '+s.name);
+    const pick=()=>{
+      if(s.id===selId&&!dirty){stat('“'+(s.name||'Script')+'” is loaded. Press Done to play it.');return;}
+      if(!confirmDiscard(s.id))return;
+      selectScript(s.id);
+    };
+    r.onclick=pick;
+    r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}};
+    del.onclick=e=>{
+      e.stopPropagation();
+      if(delArm===s.id){delArm='';removeScript(s.id);}
+      else{delArm=s.id;buildLib();stat('Press Delete again to remove “'+(s.name||'Script')+'”.');}
+    };
+    r.append(nm,mt,del);
+    box.appendChild(r);
+  });
+}
+function confirmDiscard(next){
+  if(!dirty)return true;
+  if(pendId===next){pendId='';return true;}
+  pendId=next;stat('You have unsaved edits — tap again to throw them away.',true);
+  return false;
+}
+function selectScript(id){
+  const s=scriptById(id);if(!s)return;
+  selId=id;try{localStorage.setItem(LS_SEL,id);}catch(e){}
+  $('src').value=s.src;dirty=false;delArm='';pendId='';
+  buildLib();
+  stat('Loaded “'+(s.name||'Script')+'”. Edit it, then Done to save and play.');
+}
+function removeScript(id){
+  const i=SCRIPTS.findIndex(s=>s.id===id);if(i<0)return;
+  const wasSel=selId===id,wasActive=customId===id;
+  SCRIPTS.splice(i,1);
+  saveScripts();
+  if(wasSel){
+    selId=SCRIPTS[0]?SCRIPTS[0].id:'';
+    try{localStorage.setItem(LS_SEL,selId);}catch(e){}
+    $('src').value=selId?scriptById(selId).src:EXAMPLE;
+    dirty=false;
+  }
+  if(wasActive){
+    if(SCRIPTS.length){
+      const s=scriptById(selId)||SCRIPTS[0];
+      customId=s.id;
+      if(loadCustom(s.src,false)&&mode==='custom')setMode('custom');
+    }else{
+      customId='';delete TRACKS.custom;
+      $('mine').style.display='none';
+      if(mode==='custom')setMode('reel');
+    }
+  }
+  buildLib();
+  stat(SCRIPTS.length?'Deleted. '+SCRIPTS.length+' script'+(SCRIPTS.length===1?'':'s')+' left.':'Deleted the last script — Reel and Lesson are still here.');
+}
+function playSrc(src,itemId){
+  if(!loadCustom(src,true))return false;
+  customId=itemId||'';
+  closePanel();
+  if(!playing)toggle();
+  return true;
+}
+$('pnew').onclick=()=>{
+  if(!confirmDiscard('new'))return;
+  selId='';dirty=true;delArm='';pendId='';
+  try{localStorage.removeItem(LS_SEL);}catch(e){}
+  $('src').value=NEW_TEMPLATE;
+  buildLib();stat('New script — replace the two lines, then Done to save it.');
+  $('src').focus();
+};
+$('pdone').onclick=()=>{
+  const src=$('src').value.trim();
+  if(!src){stat('Nothing to save — paste a script above first.',true);return;}
+  const r=parseScript(src);
+  if(!r.arr.length){stat('No lines found. Each line looks like: text | show=3 | pause=1 | face=😐 calm',true);return;}
+  const dur=fmt(build(r.arr).total),name=srcTitle(src);
+  let item=scriptById(selId);
+  if(item){item.name=name;item.src=src;item.lines=r.arr.length;item.dur=dur;item.at=Date.now();}
+  else{item={id:newId(),name,src,lines:r.arr.length,dur,at:Date.now()};SCRIPTS.unshift(item);selId=item.id;}
+  saveScripts();
+  try{localStorage.setItem(LS_SEL,selId);}catch(e){}
+  dirty=false;
+  buildLib();
+  playSrc(src,item.id);
+  stat('Saved “'+name+'” · '+r.arr.length+' lines · '+dur);
+};
 $('papply').onclick=()=>{
   const v=$('src').value;
-  if(loadCustom(v,true)){closePanel();try{localStorage.setItem('maScript',v);}catch(e){}}
+  if(!parseScript(v).arr.length){stat('No lines found. Each line looks like: text | show=3 | pause=1 | face=😐 calm',true);return;}
+  const s=scriptById(selId);
+  playSrc(v,(s&&s.src.trim()===v.trim())?s.id:'');
+  stat('Playing without saving. Done would have added it to the list.');
+};
+$('pex').onclick=()=>{
+  if(!confirmDiscard('example'))return;
+  selId='';dirty=true;delArm='';pendId='';
+  try{localStorage.removeItem(LS_SEL);}catch(e){}
+  $('src').value=EXAMPLE;buildLib();
+  stat('Example loaded. Press Done to save it, or Play to just try it.');
 };
 $('pcopy').onclick=async()=>{
   try{await navigator.clipboard.writeText(AI_PROMPT);stat('AI prompt copied. Paste it into any AI with your topic.');}
   catch(e){const t=document.createElement('textarea');t.value=AI_PROMPT;document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy');}catch(_){}t.remove();stat(ok?'AI prompt copied.':'Could not copy on this device.',!ok);}
 };
-$('src').value=EXAMPLE;
-try{const sv=localStorage.getItem('maScript');if(sv){$('src').value=sv;loadCustom(sv,false);}}catch(e){}
+$('src').addEventListener('input',()=>{dirty=true;pendId='';paintDirty();});
+loadScripts();
+if(selId){
+  const s=scriptById(selId);
+  $('src').value=s.src;
+  if(loadCustom(s.src,false))customId=s.id;
+}else $('src').value=EXAMPLE;
+buildLib();
 
 // ---------- Skill panel: view, copy, download ----------
 const SKILL=document.getElementById('skilldata').textContent;
@@ -880,7 +1068,7 @@ function sheetFace(c){
 function buildSheet(){
   const box=$('sheet');
   box.innerHTML='';sheetOn=-1;
-  $('sname').textContent=mode==='reel'?'Reel':mode==='lesson'?'Lesson':'Mine';
+  $('sname').textContent=mode==='reel'?'Reel':mode==='lesson'?'Lesson':((scriptById(customId)||{}).name||'Mine');
   $('scount').textContent=track.cues.length+' lines';
   $('stotal').textContent=fmt(track.total);
   track.cues.forEach((c,i)=>{
