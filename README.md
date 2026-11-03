@@ -121,6 +121,32 @@ Voice uses the browser's own speech recognition (Chrome, Edge and Safari; iOS wo
 
 ---
 
+## Drive it with a Bluetooth clicker
+
+A teleprompter clicker — including the TCQI-style remotes — pairs with the phone or computer as a **keyboard**, then sends key presses. Pair it once in the system Bluetooth settings, open the prompter, and tap **BT** at the bottom of the screen next to **Remote**. It turns gold and the prompter starts listening to the clicker's buttons.
+
+| Clicker button | What the prompter does |
+|---|---|
+| Next · PageDown · Down · Right · ⏭ | next line |
+| Back · PageUp · Up · Left · ⏮ | previous line |
+| Play / pause · OK · Space · Enter · F5 | play or pause |
+| Stop | stop and rewind |
+| Home (or **R**) | back to the top |
+| End | jump to the last line |
+| Mute (or **M**) | mute the pulse |
+
+- Lines step at the line's start, and if you were playing it keeps playing from there — so a clicker can walk the whole take without stopping.
+- **BT** is remembered on the device. Turn it off and the arrow keys go back to jumping ±5 seconds.
+- The letters **M G W T V P** (mute, guides, landscape, table, voice, pace) keep working all the time.
+- If a button seems dead, the app shows the key it received as *Remote key: “…”* — that is the name the device sends, which is handy when a remote's buttons are not labelled the obvious way.
+- Nothing pairs inside the page: browsers are not allowed to open Bluetooth keyboards (the HID profile is blocked), so the pairing always happens in the phone or computer settings first. The clicker also has to be awake and the prompter page in front.
+
+<p align="center">
+  <img src="docs/bt.png" alt="The bottom controls with the BT (Bluetooth clicker) button in gold next to Remote" width="330">
+</p>
+
+---
+
 ## Add your own scripts — and keep them
 
 Tap **Script** in the top bar. The panel is the editor plus a small library of everything you have saved on this device.
